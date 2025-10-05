@@ -1,9 +1,10 @@
+import { Link } from "@tanstack/react-router";
+
    <aside className={`bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-20'}`} >
                 <div className="flex flex-col h-full">
                     <div className={`flex items-center justify-between p-4 h-16 border-b border-gray-200 dark:border-slate-700`}>
                         <span className={`font-bold text-xl text-indigo-600 dark:text-indigo-400 ${!sidebarOpen && 'hidden'}`}>اکوسیستم</span>
                         <div className="flex items-center gap-x-2">
-                            {/* <<< ۲. دکمه تغییر تم اینجا اضافه شد >>> */}
                             <ThemeSwitcher />
                             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700">
                                 {sidebarOpen ? <ChevronLeft /> : <Menu />}

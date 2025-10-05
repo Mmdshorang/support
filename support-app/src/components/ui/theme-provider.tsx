@@ -1,6 +1,7 @@
-import { type Theme, resolvedThemeAtom, themeAtom } from "@/store/theme";
+
 import { useAtom, useAtomValue } from "jotai";
 import { type PropsWithChildren, useEffect } from "react";
+import { resolvedThemeAtom, themeAtom, type Theme } from "../../stores/theme";
 
 type ThemeProviderProps = PropsWithChildren<{
 	defaultTheme?: Theme;
