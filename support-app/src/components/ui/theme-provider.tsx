@@ -11,7 +11,6 @@ type ThemeProviderProps = PropsWithChildren<{
 const THEME_CLASSES: Array<Exclude<Theme, "system">> = [
 	"light",
 	"dark",
-	
 	"test",
 ];
 
