@@ -6,10 +6,7 @@ import { App } from "./App";
 // import { ErrorPage } from "./components/auth/auth";
 // import { BackgroundContainer } from "./components/base";
 import { routeTree } from "./routeTree.gen";
-import { routerAtom } from "./store/router";
-import { initTolgee } from "./utils/tolgee";
-
-initTolgee();
+import { routerAtom } from "./router";
 
 export const router = createRouter({
 	routeTree: routeTree,
