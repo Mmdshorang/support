@@ -6,27 +6,22 @@ import { router } from "./main";
 import "./index.css";
 import { ThemeProvider } from "./components/ui/theme-provider";
 
-
 const queryClient = new QueryClient();
 
 export function App() {
-
-
-	return (
-		<ThemeProvider>
-			<QueryClientProvider client={queryClient}>
-			
-					<RouterProvider router={router} />
-					<ToastContainer
-						position="top-center"
-						newestOnTop
-						autoClose={5000}
-						pauseOnHover
-						closeOnClick
-						rtl
-					/>
-			
-			</QueryClientProvider>
-		</ThemeProvider>
-	);
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <ToastContainer
+          position="top-center"
+          newestOnTop
+          autoClose={5000}
+          pauseOnHover
+          closeOnClick
+          rtl
+        />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
 }
