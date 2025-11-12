@@ -17,6 +17,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-router": "^1.132.27",
     "@tanstack/router-devtools": "^1.135.2",
+    "axios": "^1.6.5",
     "jalali-moment": "^3.3.11",
     "jotai": "^2.15.0",
     "lucide-react": "^0.544.0",

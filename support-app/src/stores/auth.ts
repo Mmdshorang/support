@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
-export type UserRole = "admin" | "user";
+export type UserRole = "admin" | "user" | "support";
 
 export interface User {
 	id: string;

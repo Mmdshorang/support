@@ -19,6 +19,7 @@ import { Route as StatusTicketStatusTicketRouteImport } from './routes/_statusTi
 import { Route as ReportReportRouteImport } from './routes/_report/report'
 import { Route as ProblemsSubmitTypesProblemRouteImport } from './routes/_problems/submitTypesProblem'
 import { Route as LoginSignupRouteImport } from './routes/_login/signup'
+import { Route as LoginLogoutRouteImport } from './routes/_login/logout'
 import { Route as LoginLoginRouteImport } from './routes/_login/login'
 import { Route as LoginHomeRouteImport } from './routes/_login/home'
 import { Route as DashboardDashboardRouteImport } from './routes/_dashboard/dashboard'
@@ -78,6 +79,11 @@ const LoginSignupRoute = LoginSignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginLogoutRoute = LoginLogoutRouteImport.update({
+  id: '/_login/logout',
+  path: '/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginLoginRoute = LoginLoginRouteImport.update({
   id: '/_login/login',
   path: '/login',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardDashboardRoute
   '/home': typeof LoginHomeRoute
   '/login': typeof LoginLoginRoute
+  '/logout': typeof LoginLogoutRoute
   '/signup': typeof LoginSignupRoute
   '/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
   '/report': typeof ReportReportRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardDashboardRoute
   '/home': typeof LoginHomeRoute
   '/login': typeof LoginLoginRoute
+  '/logout': typeof LoginLogoutRoute
   '/signup': typeof LoginSignupRoute
   '/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
   '/report': typeof ReportReportRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_dashboard/dashboard': typeof DashboardDashboardRoute
   '/_login/home': typeof LoginHomeRoute
   '/_login/login': typeof LoginLoginRoute
+  '/_login/logout': typeof LoginLogoutRoute
   '/_login/signup': typeof LoginSignupRoute
   '/_problems/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
   '/_report/report': typeof ReportReportRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/home'
     | '/login'
+    | '/logout'
     | '/signup'
     | '/submitTypesProblem'
     | '/report'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/home'
     | '/login'
+    | '/logout'
     | '/signup'
     | '/submitTypesProblem'
     | '/report'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_dashboard/dashboard'
     | '/_login/home'
     | '/_login/login'
+    | '/_login/logout'
     | '/_login/signup'
     | '/_problems/submitTypesProblem'
     | '/_report/report'
@@ -217,6 +229,7 @@ export interface RootRouteChildren {
   DashboardDashboardRoute: typeof DashboardDashboardRoute
   LoginHomeRoute: typeof LoginHomeRoute
   LoginLoginRoute: typeof LoginLoginRoute
+  LoginLogoutRoute: typeof LoginLogoutRoute
   LoginSignupRoute: typeof LoginSignupRoute
   ProblemsSubmitTypesProblemRoute: typeof ProblemsSubmitTypesProblemRoute
   ReportReportRoute: typeof ReportReportRoute
@@ -301,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_login/logout': {
+      id: '/_login/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LoginLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_login/login': {
       id: '/_login/login'
       path: '/login'
@@ -345,6 +365,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardDashboardRoute: DashboardDashboardRoute,
   LoginHomeRoute: LoginHomeRoute,
   LoginLoginRoute: LoginLoginRoute,
+  LoginLogoutRoute: LoginLogoutRoute,
   LoginSignupRoute: LoginSignupRoute,
   ProblemsSubmitTypesProblemRoute: ProblemsSubmitTypesProblemRoute,
   ReportReportRoute: ReportReportRoute,
