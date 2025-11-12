@@ -7,7 +7,7 @@ const storage =
 	typeof window !== "undefined"
 		? createJSONStorage<Theme>(() => window.localStorage)
 		: undefined;
-export const themeAtom = atomWithStorage<Theme>("fc-ui-theme", "dark", storage);
+export const themeAtom = atomWithStorage<Theme>("fc-ui-theme", "light", storage);
 
 const prefersDarkAtom = atom(false);
 prefersDarkAtom.onMount = (set) => {

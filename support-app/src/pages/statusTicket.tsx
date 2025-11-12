@@ -1,168 +1,220 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface Ticket {
-  id: number;
-  name: string;
-  phone: string;
-  problem: string;
-  solution: string;
-  typeSupport: "inPerson" | "absent";
-  status: "open" | "close";
+	id: number;
+	name: string;
+	phone: string;
+	problem: string;
+	solution: string;
+	typeSupport: "inPerson" | "remote";
+	status: "open" | "closed";
+	updatedAt: string;
 }
 
-export const StatusTicket = () => {
-  const [tickets, setTickets] = useState<Ticket[]>([
-    {
-      id: 1,
-      name: "علی رضایی",
-      phone: "09120000000",
-      problem: "عدم اتصال به سرور",
-      solution: "ری‌استارت مودم و سیستم",
-      typeSupport: "absent",
-      status: "open",
-    },
-    {
-      id: 2,
-      name: "زهرا محمدی",
-      phone: "09350000000",
-      problem: "مشکل در ورود به حساب",
-      solution: "بازیابی رمز عبور",
-      typeSupport: "inPerson",
-      status: "close",
-    },
-  ]);
+const initialTickets: Ticket[] = [
+	{
+		id: 6589,
+		name: "علی رضایی",
+		phone: "09120000000",
+		problem: "عدم اتصال به سرور مرکزی",
+		solution: "ریست فایل میزبان و بررسی ارتباط VPN",
+		typeSupport: "remote",
+		status: "open",
+		updatedAt: "۱۴۰۳/۰۸/۲۰",
+	},
+	{
+		id: 6590,
+		name: "زهرا محمدی",
+		phone: "09350000000",
+		problem: "مشکل در ورود اپلیکیشن موبایل",
+		solution: "بازنشانی OTP و همگام‌سازی مجدد کاربر",
+		typeSupport: "inPerson",
+		status: "closed",
+		updatedAt: "۱۴۰۳/۰۸/۱۹",
+	},
+	{
+		id: 6591,
+		name: "شرکت فناوری سپهر",
+		phone: "02188990011",
+		problem: "کندی در گزارش‌گیری فروش",
+		solution: "بهینه‌سازی کوئری‌های SQL و ایندکسینگ",
+		typeSupport: "remote",
+		status: "open",
+		updatedAt: "۱۴۰۳/۰۸/۱۸",
+	},
+];
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [newType, setNewType] = useState<"inPerson" | "absent">("inPerson");
-
-  const handleDelete = (id: number) => {
-    setTickets(tickets.filter((ticket) => ticket.id !== id));
-  };
-
-  const handleEdit = (id: number, currentType: "inPerson" | "absent") => {
-    setEditingId(id);
-    setNewType(currentType);
-  };
-
-  const handleSave = (id: number) => {
-    setTickets(
-      tickets.map((ticket) =>
-        ticket.id === id ? { ...ticket, typeSupport: newType } : ticket
-      )
-    );
-    setEditingId(null);
-  };
-
-  return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl p-6 transition-all duration-300">
-        <h2 className="text-2xl font-bold mb-6 text-gray-700 text-center border-b pb-3">
-          وضعیت تیکت ها
-        </h2>
-
-        <div className="overflow-x-auto rounded-xl border border-gray-200">
-          <table className="w-full text-right border-collapse">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="py-3 px-4">شماره</th>
-                <th className="py-3 px-4">نام</th>
-                <th className="py-3 px-4">شماره تماس</th>
-                <th className="py-3 px-4">مشکل</th>
-                <th className="py-3 px-4">راه حل</th>
-                <th className="py-3 px-4">نوع پشتیبانی</th>
-                <th className="py-3 px-4">وضعیت</th>
-                <th className="py-3 px-4 text-center">عملیات</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {tickets.map((ticket, index) => (
-                <tr
-                  key={ticket.id}
-                  className={`border-t hover:bg-blue-50 transition-all duration-200 ${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  }`}
-                >
-                  <td className="py-2 px-4">{ticket.id}</td>
-                  <td className="py-2 px-4">{ticket.name}</td>
-                  <td className="py-2 px-4">{ticket.phone}</td>
-                  <td className="py-2 px-4">{ticket.problem}</td>
-                  <td className="py-2 px-4">{ticket.solution}</td>
-
-                  <td className="py-2 px-4">
-                    {editingId === ticket.id ? (
-                      <select
-                        value={newType}
-                        onChange={(e) =>
-                          setNewType(e.target.value as "inPerson" | "absent")
-                        }
-                        className="border rounded px-2 py-1 w-full focus:outline-none focus:ring focus:ring-blue-200"
-                      >
-                        <option value="inPerson">حضوری</option>
-                        <option value="absent">غیرحضوری</option>
-                      </select>
-                    ) : ticket.typeSupport === "inPerson" ? (
-                      <span className="text-blue-700 font-medium">حضوری</span>
-                    ) : (
-                      <span className="text-green-700 font-medium">
-                        غیرحضوری
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="py-2 px-4">
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        value=""
-                        className="sr-only peer"
-                      />
-                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                      {/* <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                        
-                      </span> */}
-                    </label>
-                  </td>
-
-                  <td className="py-2 px-4 text-center flex justify-center gap-2">
-                    {editingId === ticket.id ? (
-                      <button
-                        onClick={() => handleSave(ticket.id)}
-                        className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition"
-                      >
-                        ذخیره
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() =>
-                          handleEdit(ticket.id, ticket.typeSupport)
-                        }
-                        className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition"
-                      >
-                        ویرایش
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDelete(ticket.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition"
-                    >
-                      حذف
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {tickets.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="text-center py-6 text-gray-500">
-                    تیکتی وجود ندارد
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+const statusBadge: Record<Ticket["status"], string> = {
+	open: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200",
+	closed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
 };
+
+const typeBadge: Record<Ticket["typeSupport"], string> = {
+	inPerson: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-100",
+	remote: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
+};
+
+export function StatusTicketPage() {
+	const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+	const [editingId, setEditingId] = useState<number | null>(null);
+	const [currentType, setCurrentType] = useState<Ticket["typeSupport"]>("remote");
+
+	const stats = useMemo(() => {
+		const open = tickets.filter((ticket) => ticket.status === "open").length;
+		const closed = tickets.length - open;
+		const inPerson = tickets.filter((ticket) => ticket.typeSupport === "inPerson").length;
+		return { total: tickets.length, open, closed, inPerson };
+	}, [tickets]);
+
+	const handleDelete = (id: number) => {
+		setTickets((prev) => prev.filter((ticket) => ticket.id !== id));
+	};
+
+	const handleEdit = (ticket: Ticket) => {
+		setEditingId(ticket.id);
+		setCurrentType(ticket.typeSupport);
+	};
+
+	const handleSave = (id: number) => {
+		setTickets((prev) =>
+			prev.map((ticket) => (ticket.id === id ? { ...ticket, typeSupport: currentType } : ticket)),
+		);
+		setEditingId(null);
+	};
+
+	return (
+		<div className="space-y-8">
+			<header className="space-y-2">
+				<h1 className="text-2xl font-bold text-slate-900 dark:text-white">وضعیت تیکت‌ها</h1>
+				<p className="text-sm text-slate-500 dark:text-slate-300">
+					پیگیری لحظه‌ای تیکت‌های فعال، تغییر نوع پشتیبانی و مدیریت وضعیت بر اساس SLA.
+				</p>
+			</header>
+
+			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+				{[
+					{ title: "کل تیکت‌ها", value: stats.total, tone: "bg-slate-100 text-slate-700 dark:bg-slate-900/50 dark:text-slate-200" },
+					{ title: "تیکت‌های باز", value: stats.open, tone: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200" },
+					{ title: "تیکت‌های بسته", value: stats.closed, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200" },
+					{ title: "نیازمند اعزام", value: stats.inPerson, tone: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200" },
+				].map((item) => (
+					<div
+						key={item.title}
+						className={`rounded-3xl border border-transparent p-5 text-sm font-semibold shadow-sm backdrop-blur-xl ${item.tone}`}
+					>
+						<p>{item.title}</p>
+						<p className="mt-3 text-2xl font-black">{item.value}</p>
+					</div>
+				))}
+			</section>
+
+			<section className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div className="space-y-1">
+						<h2 className="text-lg font-semibold text-slate-900 dark:text-white">جدول تیکت‌ها</h2>
+						<p className="text-xs text-slate-500 dark:text-slate-300">برای ویرایش، روی ستون «نوع پشتیبانی» کلیک کنید.</p>
+					</div>
+					<button className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+						دریافت خروجی اکسل
+					</button>
+				</div>
+
+				<div className="mt-5 overflow-x-auto">
+					<table className="min-w-full border-separate border-spacing-y-3 text-sm">
+						<thead>
+							<tr className="text-right text-xs font-semibold text-slate-500 dark:text-slate-300">
+								<th className="rounded-r-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">شناسه</th>
+								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">مشتری</th>
+								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">شماره تماس</th>
+								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">شرح مشکل</th>
+								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">راه‌حل</th>
+								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">نوع پشتیبانی</th>
+								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">وضعیت</th>
+								<th className="rounded-l-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">آخرین بروزرسانی</th>
+								<th className="rounded-l-xl bg-slate-100/70 px-3 py-2 text-center dark:bg-slate-800/70">عملیات</th>
+							</tr>
+						</thead>
+						<tbody>
+							{tickets.map((ticket) => (
+								<tr
+									key={ticket.id}
+									className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70"
+								>
+									<td className="rounded-r-3xl px-3 py-4 font-semibold text-slate-500 dark:text-slate-300">#{ticket.id}</td>
+									<td className="px-3 py-4">
+										<div className="space-y-1">
+											<p className="font-semibold text-slate-800 dark:text-white">{ticket.name}</p>
+											<p className="text-xs text-slate-400 dark:text-slate-300">تیکت سطح A</p>
+										</div>
+									</td>
+									<td className="px-3 py-4">
+										<p className="text-xs font-mono text-slate-500 dark:text-slate-300">{ticket.phone}</p>
+									</td>
+									<td className="px-3 py-4 text-xs leading-5 text-slate-600 dark:text-slate-200">{ticket.problem}</td>
+									<td className="px-3 py-4 text-xs leading-5 text-slate-500 dark:text-slate-300">{ticket.solution}</td>
+									<td className="px-3 py-4">
+										{editingId === ticket.id ? (
+											<select
+												value={currentType}
+												onChange={(event) => setCurrentType(event.target.value as Ticket["typeSupport"])}
+												className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
+											>
+												<option value="remote">دورکاری</option>
+												<option value="inPerson">حضوری</option>
+											</select>
+										) : (
+											<span className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${typeBadge[ticket.typeSupport]}`}>
+												{ticket.typeSupport === "inPerson" ? "حضوری" : "غیرحضوری"}
+											</span>
+										)}
+									</td>
+									<td className="px-3 py-4">
+										<span className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${statusBadge[ticket.status]}`}>
+											{ticket.status === "open" ? "در حال پیگیری" : "بسته شده"}
+										</span>
+									</td>
+									<td className="px-3 py-4 text-xs font-medium text-slate-500 dark:text-slate-300">{ticket.updatedAt}</td>
+									<td className="rounded-l-3xl px-3 py-4 text-center">
+										<div className="flex items-center justify-center gap-2">
+											{editingId === ticket.id ? (
+												<button
+													onClick={() => handleSave(ticket.id)}
+													className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+												>
+													ذخیره
+												</button>
+											) : (
+												<button
+													onClick={() => handleEdit(ticket)}
+													className="rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600"
+												>
+													ویرایش
+												</button>
+											)}
+											<button
+												onClick={() => handleDelete(ticket.id)}
+												className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-600"
+											>
+												حذف
+											</button>
+										</div>
+									</td>
+								</tr>
+							))}
+
+							{tickets.length === 0 && (
+								<tr>
+									<td colSpan={9} className="rounded-3xl bg-white/80 py-8 text-center text-sm font-medium text-slate-400 dark:bg-slate-900/70 dark:text-slate-300">
+										همه‌چیز عالی است! هیچ تیکت بازی وجود ندارد.
+									</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+				</div>
+			</section>
+		</div>
+	);
+}
+
+export default StatusTicketPage;

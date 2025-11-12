@@ -18,10 +18,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   useEffect(() => {
     const root = document.documentElement;
+    const body = document.body;
 
-    root.classList.remove(...THEME_CLASSES);
+    const applyTheme = (el: HTMLElement) => {
+      el.classList.remove(...THEME_CLASSES);
+      if (resolved === "dark") {
+        el.classList.add("dark");
+      } else {
+        el.classList.add("light");
+      }
+      el.setAttribute("data-theme", resolved);
+      el.style.colorScheme = resolved === "dark" ? "dark" : "light";
+    };
 
-    root.classList.add(resolved);
+    applyTheme(root);
+    applyTheme(body);
 
     root.setAttribute("dir", "rtl");
   }, [resolved]);
@@ -29,7 +40,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   return <>{children}</>;
 }
 
-export function UseTheme() {
+export function useTheme() {
   const [theme, setTheme] = useAtom(themeAtom);
   return { theme, setTheme };
 }

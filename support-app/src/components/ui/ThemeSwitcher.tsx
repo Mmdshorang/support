@@ -6,7 +6,7 @@ export default function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+    setTheme((current) => (current === "light" ? "dark" : "light"));
   };
 
   return (

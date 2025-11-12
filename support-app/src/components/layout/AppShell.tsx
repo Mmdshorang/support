@@ -1,0 +1,172 @@
+import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
+import {
+	BarChart3,
+	BookOpen,
+	CalendarClock,
+	Files,
+	LayoutDashboard,
+	LifeBuoy,
+	MessageSquare,
+	Settings,
+	UsersRound,
+} from "lucide-react";
+import Sidebar, { type NavItem } from "../ui/Sidebar";
+import TopBar from "../ui/TopBar";
+
+interface AppShellProps {
+	children: ReactNode;
+}
+
+interface PageMeta {
+	title: string;
+	subtitle?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+	{ isTitle: true, label: "اصلی" },
+	{ href: "/dashboard", label: "داشبورد", icon: LayoutDashboard },
+	{ href: "/", label: "خانه", icon: BookOpen },
+	{ href: "/submitTicket", label: "ثبت تیکت", icon: MessageSquare },
+	{ href: "/statusTicket", label: "وضعیت تیکت‌ها", icon: CalendarClock },
+	{ href: "/customerRegistration", label: "ثبت مشتری", icon: UsersRound },
+	{ type: "divider", label: "divider" },
+	{ isTitle: true, label: "گزارشات" },
+	{ href: "/report", label: "تحلیل و گزارش", icon: BarChart3 },
+	{ href: "/submitTypesProblem", label: "دسته بندی مشکلات", icon: Files },
+	{ href: "/component", label: "کتابخانه کامپوننت", icon: LifeBuoy },
+	{ type: "divider", label: "divider2" },
+	{ isTitle: true, label: "پیکربندی" },
+	{ href: "/settings", label: "تنظیمات", icon: Settings },
+];
+
+const AUTH_ROUTES = ["/login", "/signup", "/home"];
+
+const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
+	{
+		pattern: /^\/$/,
+		meta: {
+			title: "خانه",
+			subtitle: "به پورتال پشتیبانی حسابان خوش آمدید",
+		},
+	},
+	{
+		pattern: /^\/dashboard/,
+		meta: {
+			title: "داشبورد مدیریتی",
+			subtitle: "شاخص‌ها و وضعیت کلی درخواست‌ها در یک نگاه",
+		},
+	},
+	{
+		pattern: /^\/submitTicket/,
+		meta: {
+			title: "ثبت تیکت پشتیبانی",
+			subtitle: "مشکل خود را ثبت کنید تا در سریع‌ترین زمان پیگیری شود",
+		},
+	},
+	{
+		pattern: /^\/statusTicket/,
+		meta: {
+			title: "وضعیت تیکت‌ها",
+			subtitle: "پیگیری و مدیریت درخواست‌های فعال",
+		},
+	},
+	{
+		pattern: /^\/report/,
+		meta: {
+			title: "گزارش‌های تحلیلی",
+			subtitle: "بررسی روند کیفیت خدمات و عملکرد تیم‌ها",
+		},
+	},
+];
+
+const getPageMeta = (pathname: string): PageMeta => {
+	for (const item of METADATA) {
+		if (item.pattern.test(pathname)) {
+			return item.meta;
+		}
+	}
+
+	return {
+		title: "پشتیبانی حسابان",
+		subtitle: "مدیریت یکپارچه درخواست‌ها، مشتریان و تیم‌ها",
+	};
+};
+
+export default function AppShell({ children }: AppShellProps) {
+	const { location } = useRouterState();
+	const pathname = location.pathname ?? "/";
+	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+	const meta = useMemo(() => getPageMeta(pathname), [pathname]);
+
+	const shouldHideShell = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+
+	const filteredNavItems = useMemo(() => NAV_ITEMS.filter((item) => {
+		// Remove virtual settings link if route not implemented yet
+		if (item.href === "/settings") {
+			return false;
+		}
+		return true;
+	}), []);
+
+	if (shouldHideShell) {
+		return <>{children}</>;
+	}
+
+	const handleSidebarToggle = () => {
+		if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+			setSidebarOpen((prev) => !prev);
+		} else {
+			setMobileSidebarOpen((prev) => !prev);
+		}
+	};
+
+	const effectiveSidebarOpen = mobileSidebarOpen || sidebarOpen;
+
+	const handleSidebarState = (open: boolean) => {
+		if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+			setSidebarOpen(open);
+		} else {
+			setMobileSidebarOpen(open);
+		}
+	};
+
+	return (
+		<div className="flex min-h-screen bg-slate-50/90 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+			{mobileSidebarOpen && (
+				<button
+					type="button"
+					className="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm transition-opacity lg:hidden"
+					onClick={() => setMobileSidebarOpen(false)}
+					aria-label="بستن منوی کناری"
+				/>
+			)}
+			<div
+				className={`fixed inset-y-0 right-0 z-40 w-72 transform bg-white/95 shadow-xl backdrop-blur-sm transition-all duration-300 dark:bg-slate-900/95 lg:static lg:z-auto lg:flex lg:w-auto lg:translate-x-0 lg:bg-white/0 lg:shadow-none lg:backdrop-blur-0 dark:lg:bg-transparent ${mobileSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+					}`}
+			>
+				<Sidebar
+					sidebarOpen={effectiveSidebarOpen}
+					setSidebarOpen={handleSidebarState}
+					filteredNavItems={filteredNavItems}
+					currentPath={pathname}
+				/>
+			</div>
+			<div className="flex flex-1 flex-col">
+				<TopBar
+					sidebarOpen={effectiveSidebarOpen}
+					onToggleSidebar={handleSidebarToggle}
+					pageTitle={meta.title}
+					subtitle={meta.subtitle}
+				/>
+				<main className="flex-1 space-y-6 p-4 sm:p-6 lg:px-8 lg:py-6">
+					{children}
+				</main>
+			</div>
+		</div>
+	);
+}
+

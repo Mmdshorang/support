@@ -1,22 +1,24 @@
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-
+import AppShell from "../components/layout/AppShell";
 
 export const Route = createRootRoute({
-  component: RootPage,
+	component: RootPage,
 });
 
 export function RootPage() {
-  return (
-    <>
-      {import.meta.env.DEV && (
-        <>
-          <TanStackRouterDevtools />
-          <ReactQueryDevtools />
-        </>
-      )}
-      <Outlet />
-    </>
-  );
+	return (
+		<>
+			{import.meta.env.DEV && (
+				<>
+					<TanStackRouterDevtools />
+					<ReactQueryDevtools />
+				</>
+			)}
+			<AppShell>
+				<Outlet />
+			</AppShell>
+		</>
+	);
 }

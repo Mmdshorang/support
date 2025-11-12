@@ -1,103 +1,116 @@
 
-import { ChevronLeft, Menu, LogOut } from "lucide-react";
+import type { ElementType } from "react";
 import { Link } from "@tanstack/react-router";
+import { ChevronLeft, LogOut, Menu } from "lucide-react";
 import ThemeSwitcher from "./ThemeSwitcher";
 
-
-interface NavItem {
-    href?: string;
-    label: string;
-    icon?: React.ElementType;
-    type?: "divider";
-    isTitle?: boolean;
+export interface NavItem {
+	href?: string;
+	label: string;
+	icon?: ElementType;
+	type?: "divider";
+	isTitle?: boolean;
 }
 
 interface SidebarProps {
-    sidebarOpen: boolean;
-    setSidebarOpen: (open: boolean) => void;
-    filteredNavItems: NavItem[];
+	sidebarOpen: boolean;
+	setSidebarOpen: (open: boolean) => void;
+	filteredNavItems: NavItem[];
+	currentPath: string;
 }
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen, filteredNavItems }: SidebarProps) {
-    return (
-        <aside
-            className={`bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm transition-all duration-300 ease-in-out ${sidebarOpen ? "w-64" : "w-20"
-                }`}
-        >
-            <div className="flex flex-col h-full">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200 dark:border-slate-700">
-                    <span
-                        className={`font-bold text-xl text-indigo-600 dark:text-indigo-400 ${!sidebarOpen ? "hidden" : ""
-                            }`}
-                    >
-                        اکوسیستم
-                    </span>
-                    <div className="flex items-center gap-x-2">
-                        <ThemeSwitcher />
-                        <button
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-                        >
-                            {sidebarOpen ? <ChevronLeft /> : <Menu />}
-                        </button>
-                    </div>
-                </div>
+export default function Sidebar({
+	sidebarOpen,
+	setSidebarOpen,
+	filteredNavItems,
+	currentPath,
+}: SidebarProps) {
+	const isActive = (href?: string) => {
+		if (!href) return false;
+		if (href === "/") {
+			return currentPath === "/";
+		}
+		return currentPath.startsWith(href);
+	};
 
-                {/* Navigation */}
-                <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-                    {filteredNavItems.map((item, index) => {
-                        if (item.type === "divider") {
-                            return <hr key={index} className="my-2 border-gray-200 dark:border-slate-700" />;
-                        }
+	return (
+		<aside
+			className={`bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm transition-all duration-300 ease-in-out border-l border-slate-200/60 dark:border-slate-700/60 ${sidebarOpen ? "w-64" : "w-20"
+				}`}
+		>
+			<div className="flex flex-col h-full">
+				<div className="flex items-center justify-between p-4 h-16 border-b border-gray-200/70 dark:border-slate-700/70">
+					<span
+						className={`font-bold text-xl text-indigo-600 dark:text-indigo-400 transition-opacity duration-200 ${!sidebarOpen ? "opacity-0" : "opacity-100"
+							}`}
+					>
+						اکوسیستم
+					</span>
+					<div className="flex items-center gap-x-2">
+						<ThemeSwitcher />
+						<button
+							onClick={() => setSidebarOpen(!sidebarOpen)}
+							className="flex rounded-lg p-2 hover:bg-gray-200 transition-colors dark:hover:bg-slate-700"
+							aria-label={sidebarOpen ? "بستن منو" : "باز کردن منو"}
+						>
+							{sidebarOpen ? <ChevronLeft /> : <Menu />}
+						</button>
+					</div>
+				</div>
 
-                        if (item.isTitle) {
-                            return (
-                                <h3
-                                    key={index}
-                                    className={`px-4 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase ${!sidebarOpen ? "hidden" : ""
-                                        }`}
-                                >
-                                    {item.label}
-                                </h3>
-                            );
-                        }
+				<nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+					{filteredNavItems.map((item, index) => {
+						if (item.type === "divider") {
+							return <hr key={index} className="my-3 border-gray-200 dark:border-slate-700" />;
+						}
 
-                        if (item.href && item.icon) {
-                            const IconComponent = item.icon;
-                            return (
+						if (item.isTitle) {
+							return (
+								<h3
+									key={index}
+									className={`px-3 pt-3 pb-1 text-[11px] tracking-wide font-bold text-gray-500 uppercase ${!sidebarOpen ? "hidden" : ""
+										}`}
+								>
+									{item.label}
+								</h3>
+							);
+						}
 
-                                <Link
-                                    key={item.href}
-                                    to={item.href || '/'} // دقت کن باید `to` باشه، نه href
-                                    className="flex items-center p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-white hover:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
-                                >
-                                    <IconComponent className="h-6 w-6" />
-                                    {sidebarOpen && (
-                                        <span className="mr-4 font-medium">
-                                            {item.label}
-                                        </span>
-                                    )}
-                                </Link>
+						if (item.href && item.icon) {
+							const IconComponent = item.icon;
+							const active = isActive(item.href);
 
-                            );
-                        }
+							return (
+								<Link
+									key={item.href}
+									to={item.href}
+									className={`group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all ${active
+										? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30"
+										: "text-gray-600 dark:text-gray-300 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-700/70 dark:hover:text-white"
+										}`}
+								>
+									<IconComponent
+										className={`h-5 w-5 transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-105"}`}
+									/>
+									{sidebarOpen && <span className="truncate">{item.label}</span>}
+								</Link>
+							);
+						}
 
-                        return null;
-                    })}
-                </nav>
+						return null;
+					})}
+				</nav>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-gray-200 dark:border-slate-700">
-                    <Link
-                        to="/logout"
-                        className="flex items-center p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-800/50 hover:text-red-700 dark:hover:text-white transition-colors"
-                    >
-                        <LogOut className="h-6 w-6" />
-                        <span className={`mr-4 font-medium ${!sidebarOpen ? "hidden" : ""}`}>خروج</span>
-                    </Link>
-                </div>
-            </div>
-        </aside>
-    );
+				<div className="p-4 border-t border-gray-200/70 dark:border-slate-700/70">
+					<Link
+						to="/logout"
+						className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-100 transition-colors"
+					>
+						<LogOut className="h-5 w-5" />
+						<span className={!sidebarOpen ? "hidden" : "truncate"}>خروج</span>
+					</Link>
+				</div>
+			</div>
+		</aside>
+	);
 }
