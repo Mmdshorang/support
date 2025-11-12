@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { useAtomValue } from "jotai";
 import {
 	BarChart3,
 	BookOpen,
@@ -9,11 +10,14 @@ import {
 	LayoutDashboard,
 	LifeBuoy,
 	MessageSquare,
+	Plus,
 	Settings,
+	Ticket,
 	UsersRound,
 } from "lucide-react";
 import Sidebar, { type NavItem } from "../ui/Sidebar";
 import TopBar from "../ui/TopBar";
+import { userAtom } from "../../stores/auth";
 
 interface AppShellProps {
 	children: ReactNode;
@@ -24,9 +28,9 @@ interface PageMeta {
 	subtitle?: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const ADMIN_NAV_ITEMS: NavItem[] = [
 	{ isTitle: true, label: "اصلی" },
-	{ href: "/dashboard", label: "داشبورد", icon: LayoutDashboard },
+	{ href: "/dashboard", label: "داشبورد مدیریت", icon: LayoutDashboard },
 	{ href: "/", label: "خانه", icon: BookOpen },
 	{ href: "/submitTicket", label: "ثبت تیکت", icon: MessageSquare },
 	{ href: "/statusTicket", label: "وضعیت تیکت‌ها", icon: CalendarClock },
@@ -39,6 +43,17 @@ const NAV_ITEMS: NavItem[] = [
 	{ type: "divider", label: "divider2" },
 	{ isTitle: true, label: "پیکربندی" },
 	{ href: "/settings", label: "تنظیمات", icon: Settings },
+];
+
+const USER_NAV_ITEMS: NavItem[] = [
+	{ isTitle: true, label: "منوی کاربری" },
+	{ href: "/user-dashboard", label: "داشبورد من", icon: LayoutDashboard },
+	{ href: "/user/new-ticket", label: "ثبت تیکت جدید", icon: Plus },
+	{ href: "/user/tickets", label: "تیکت‌های من", icon: Ticket },
+	{ type: "divider", label: "divider" },
+	{ isTitle: true, label: "راهنما" },
+	{ href: "/", label: "صفحه اصلی", icon: BookOpen },
+	{ href: "/help", label: "راهنمای استفاده", icon: LifeBuoy },
 ];
 
 const AUTH_ROUTES = ["/login", "/signup", "/home"];
@@ -56,6 +71,27 @@ const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
 		meta: {
 			title: "داشبورد مدیریتی",
 			subtitle: "شاخص‌ها و وضعیت کلی درخواست‌ها در یک نگاه",
+		},
+	},
+	{
+		pattern: /^\/user-dashboard/,
+		meta: {
+			title: "داشبورد من",
+			subtitle: "مدیریت و پیگیری تیکت‌های پشتیبانی خود",
+		},
+	},
+	{
+		pattern: /^\/user\/new-ticket/,
+		meta: {
+			title: "ثبت تیکت جدید",
+			subtitle: "مشکل یا درخواست خود را با ما در میان بگذارید",
+		},
+	},
+	{
+		pattern: /^\/user\/tickets/,
+		meta: {
+			title: "جزئیات تیکت",
+			subtitle: "مشاهده پیام‌ها و پاسخ به تیکت",
 		},
 	},
 	{
@@ -99,18 +135,28 @@ export default function AppShell({ children }: AppShellProps) {
 	const pathname = location.pathname ?? "/";
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+	const user = useAtomValue(userAtom);
 
 	const meta = useMemo(() => getPageMeta(pathname), [pathname]);
 
 	const shouldHideShell = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
-	const filteredNavItems = useMemo(() => NAV_ITEMS.filter((item) => {
+	// تعیین navigation items بر اساس نقش کاربر
+	const navItems = useMemo(() => {
+		if (!user) return ADMIN_NAV_ITEMS; // پیش‌فرض admin است
+		return user.role === "admin" ? ADMIN_NAV_ITEMS : USER_NAV_ITEMS;
+	}, [user]);
+
+	const filteredNavItems = useMemo(() => navItems.filter((item) => {
 		// Remove virtual settings link if route not implemented yet
 		if (item.href === "/settings") {
 			return false;
 		}
+		if (item.href === "/help") {
+			return false;
+		}
 		return true;
-	}), []);
+	}), [navItems]);
 
 	if (shouldHideShell) {
 		return <>{children}</>;

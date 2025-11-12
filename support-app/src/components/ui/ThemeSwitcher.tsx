@@ -6,7 +6,8 @@ export default function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => {
-    setTheme((current) => (current === "light" ? "dark" : "light"));
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
   };
 
   return (
@@ -16,7 +17,7 @@ export default function ThemeSwitcher() {
       title="تغییر تم"
     >
       {theme === "light" ? (
-        <Moon className="h-5 w-5 text-gray-600" />
+        <Moon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
       ) : (
         <Sun className="h-5 w-5 text-yellow-400" />
       )}
