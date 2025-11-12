@@ -14,6 +14,7 @@ import { Route as ComponentIndexRouteImport } from './routes/component/index'
 import { Route as ComponentIconsRouteImport } from './routes/component/icons'
 import { Route as SubmitTicketSubmitTicketRouteImport } from './routes/_submitTicket/submitTicket'
 import { Route as StatusTicketStatusTicketRouteImport } from './routes/_statusTicket/statusTicket'
+import { Route as ReportReportRouteImport } from './routes/_report/report'
 import { Route as ProblemsSubmitTypesProblemRouteImport } from './routes/_problems/submitTypesProblem'
 import { Route as LoginSignupRouteImport } from './routes/_login/signup'
 import { Route as LoginLoginRouteImport } from './routes/_login/login'
@@ -48,6 +49,11 @@ const StatusTicketStatusTicketRoute =
     path: '/statusTicket',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ReportReportRoute = ReportReportRouteImport.update({
+  id: '/_report/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProblemsSubmitTypesProblemRoute =
   ProblemsSubmitTypesProblemRouteImport.update({
     id: '/_problems/submitTypesProblem',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginLoginRoute
   '/signup': typeof LoginSignupRoute
   '/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
+  '/report': typeof ReportReportRoute
   '/statusTicket': typeof StatusTicketStatusTicketRoute
   '/submitTicket': typeof SubmitTicketSubmitTicketRoute
   '/component/icons': typeof ComponentIconsRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginLoginRoute
   '/signup': typeof LoginSignupRoute
   '/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
+  '/report': typeof ReportReportRoute
   '/statusTicket': typeof StatusTicketStatusTicketRoute
   '/submitTicket': typeof SubmitTicketSubmitTicketRoute
   '/component/icons': typeof ComponentIconsRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/_login/login': typeof LoginLoginRoute
   '/_login/signup': typeof LoginSignupRoute
   '/_problems/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
+  '/_report/report': typeof ReportReportRoute
   '/_statusTicket/statusTicket': typeof StatusTicketStatusTicketRoute
   '/_submitTicket/submitTicket': typeof SubmitTicketSubmitTicketRoute
   '/component/icons': typeof ComponentIconsRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/submitTypesProblem'
+    | '/report'
     | '/statusTicket'
     | '/submitTicket'
     | '/component/icons'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/submitTypesProblem'
+    | '/report'
     | '/statusTicket'
     | '/submitTicket'
     | '/component/icons'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/_login/login'
     | '/_login/signup'
     | '/_problems/submitTypesProblem'
+    | '/_report/report'
     | '/_statusTicket/statusTicket'
     | '/_submitTicket/submitTicket'
     | '/component/icons'
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   LoginLoginRoute: typeof LoginLoginRoute
   LoginSignupRoute: typeof LoginSignupRoute
   ProblemsSubmitTypesProblemRoute: typeof ProblemsSubmitTypesProblemRoute
+  ReportReportRoute: typeof ReportReportRoute
   StatusTicketStatusTicketRoute: typeof StatusTicketStatusTicketRoute
   SubmitTicketSubmitTicketRoute: typeof SubmitTicketSubmitTicketRoute
   ComponentIconsRoute: typeof ComponentIconsRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/statusTicket'
       fullPath: '/statusTicket'
       preLoaderRoute: typeof StatusTicketStatusTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_report/report': {
+      id: '/_report/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_problems/submitTypesProblem': {
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginLoginRoute: LoginLoginRoute,
   LoginSignupRoute: LoginSignupRoute,
   ProblemsSubmitTypesProblemRoute: ProblemsSubmitTypesProblemRoute,
+  ReportReportRoute: ReportReportRoute,
   StatusTicketStatusTicketRoute: StatusTicketStatusTicketRoute,
   SubmitTicketSubmitTicketRoute: SubmitTicketSubmitTicketRoute,
   ComponentIconsRoute: ComponentIconsRoute,

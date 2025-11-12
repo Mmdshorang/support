@@ -7,7 +7,9 @@ interface Issue {
 
 export default function IssuesList() {
   const [issues, setIssues] = useState<Issue[]>([
-   
+    { id: 1, type: "ارور سرور" },
+    { id: 2, type: "مشکل در فرم ورود" },
+    { id: 3, type: "تاخیر در لود صفحه" },
   ]);
 
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -42,9 +44,9 @@ export default function IssuesList() {
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 transition-all duration-300">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl p-6 transition-all duration-300">
         <h2 className="text-2xl font-bold mb-6 text-gray-700 text-center border-b pb-3">
-          🛠️ لیست مشکلات
+          🛠️ لیست مشکلات سیستم
         </h2>
 
         {/* فرم اضافه کردن مشکل */}
@@ -123,7 +125,7 @@ export default function IssuesList() {
               {issues.length === 0 && (
                 <tr>
                   <td colSpan={3} className="text-center py-6 text-gray-500">
-                   
+                    هیچ مشکلی ثبت نشده است 😌
                   </td>
                 </tr>
               )}
