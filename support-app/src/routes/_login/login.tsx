@@ -6,9 +6,13 @@ import { Eye, EyeOff, LogIn } from "lucide-react";
 import logo from "../../assets/logo.svg";
 import { authApi } from "../../services/api/auth";
 import { userAtom } from "../../stores/auth";
+import { redirectIfAuthenticated } from "../../lib/auth-guard";
 
 export const Route = createFileRoute("/_login/login")({
   component: LoginPage,
+  beforeLoad: () => {
+    redirectIfAuthenticated();
+  },
 });
 
 function LoginPage() {

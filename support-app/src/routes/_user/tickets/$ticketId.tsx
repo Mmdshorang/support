@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	ArrowRight,
 	Calendar,
@@ -9,6 +9,9 @@ import {
 	Send,
 	User,
 } from "lucide-react";
+import { requireAuth } from "../../../lib/auth-guard";
+import { ticketsApi, type Ticket, type TicketMessage } from "../../../services/api/tickets";
+import { toast } from "react-toastify";
 
 type TicketStatus = "در انتظار" | "در حال پیگیری" | "پاسخ داده شده" | "بسته شده";
 type TicketPriority = "کم" | "متوسط" | "زیاد" | "بحرانی";
@@ -95,26 +98,85 @@ const PRIORITY_STYLES: Record<TicketPriority, string> = {
 
 export const Route = createFileRoute("/_user/tickets/$ticketId")({
 	component: TicketDetailPage,
+	beforeLoad: () => {
+		requireAuth();
+	},
 });
 
 function TicketDetailPage() {
 	const { ticketId } = Route.useParams();
+	const [ticket, setTicket] = useState<Ticket | null>(null);
+	const [messages, setMessages] = useState<TicketMessage[]>([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
-	// در یک اپلیکیشن واقعی، باید از API داده‌ها را بگیرید
-	const ticket = MOCK_TICKET;
+	// Fetch ticket and messages
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				setIsLoading(true);
+				const [ticketRes, messagesRes] = await Promise.all([
+					ticketsApi.getTicket(Number(ticketId)),
+					ticketsApi.getMessages(Number(ticketId)),
+				]);
+
+				setTicket(ticketRes.data);
+				setMessages(messagesRes.data);
+			} catch (error) {
+				console.error('Error fetching ticket:', error);
+				toast.error('خطا در دریافت اطلاعات تیکت');
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchData();
+	}, [ticketId]);
 
 	const handleSendMessage = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!newMessage.trim() || isSubmitting) return;
+		if (!newMessage.trim() || isSubmitting || !ticket) return;
 
 		setIsSubmitting(true);
-		// اینجا باید پیام را به سرور ارسال کنید
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		setNewMessage("");
-		setIsSubmitting(false);
+		try {
+			const response = await ticketsApi.sendMessage(Number(ticketId), newMessage.trim());
+			setMessages([...messages, response.data]);
+			setNewMessage("");
+			toast.success('پیام ارسال شد');
+		} catch (error) {
+			console.error('Error sending message:', error);
+			toast.error('خطا در ارسال پیام');
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
+
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center py-12">
+				<div className="text-center">
+					<div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+					<p className="mt-3 text-sm text-slate-500 dark:text-slate-300">در حال بارگذاری...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (!ticket) {
+		return (
+			<div className="text-center py-12">
+				<p className="text-slate-500 dark:text-slate-300">تیکت یافت نشد</p>
+				<Link
+					to="/user-dashboard"
+					className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+				>
+					<ArrowRight className="h-4 w-4" />
+					بازگشت به داشبورد
+				</Link>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
@@ -147,11 +209,11 @@ function TicketDetailPage() {
 						<div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
 							<div className="flex items-center gap-2">
 								<Calendar className="h-4 w-4" />
-								<span>ایجاد: {ticket.createdAt}</span>
+								<span>ایجاد: {new Date(ticket.created_at).toLocaleDateString('fa-IR')}</span>
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="h-4 w-4" />
-								<span>به‌روزرسانی: {ticket.updatedAt}</span>
+								<span>به‌روزرسانی: {new Date(ticket.updated_at).toLocaleDateString('fa-IR')}</span>
 							</div>
 						</div>
 					</div>
@@ -178,61 +240,70 @@ function TicketDetailPage() {
 						پیام‌ها
 					</h2>
 					<span className="text-sm text-slate-500 dark:text-slate-400">
-						({ticket.messages.length})
+						({messages.length})
 					</span>
 				</div>
 
 				<div className="space-y-4">
-					{ticket.messages.map((message) => (
-						<div
-							key={message.id}
-							className={`flex gap-4 ${message.sender === "user" ? "flex-row-reverse" : ""
-								}`}
-						>
-							<div
-								className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${message.sender === "user"
-									? "bg-indigo-500 text-white"
-									: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
-									}`}
-							>
-								<User className="h-5 w-5" />
-							</div>
-							<div
-								className={`flex-1 space-y-2 ${message.sender === "user" ? "text-right" : ""
-									}`}
-							>
-								<div className="flex items-center gap-2">
-									<span className="text-sm font-semibold text-slate-900 dark:text-white">
-										{message.senderName}
-									</span>
-									<span className="text-xs text-slate-400 dark:text-slate-500">
-										{message.timestamp}
-									</span>
-								</div>
-								<div
-									className={`rounded-2xl p-4 ${message.sender === "user"
-										? "bg-indigo-50 text-slate-900 dark:bg-indigo-500/20 dark:text-white"
-										: "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
-										}`}
-								>
-									<p className="text-sm leading-relaxed">{message.message}</p>
-								</div>
-								{message.attachments && message.attachments.length > 0 && (
-									<div className="flex flex-wrap gap-2">
-										{message.attachments.map((attachment, index) => (
-											<div
-												key={index}
-												className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800"
-											>
-												<Paperclip className="h-3 w-3" />
-												<span>{attachment}</span>
-											</div>
-										))}
-									</div>
-								)}
-							</div>
+					{messages.length === 0 ? (
+						<div className="text-center py-8 text-slate-500 dark:text-slate-400">
+							<p>هنوز پیامی ثبت نشده است</p>
 						</div>
-					))}
+					) : (
+						messages.map((message) => {
+							const isUserMessage = message.sender_role === "user";
+							return (
+								<div
+									key={message.id}
+									className={`flex gap-4 ${isUserMessage ? "flex-row-reverse" : ""}`}
+								>
+									<div
+										className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+											isUserMessage
+												? "bg-indigo-500 text-white"
+												: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+										}`}
+									>
+										<User className="h-5 w-5" />
+									</div>
+									<div
+										className={`flex-1 space-y-2 ${isUserMessage ? "text-right" : ""}`}
+									>
+										<div className="flex items-center gap-2">
+											<span className="text-sm font-semibold text-slate-900 dark:text-white">
+												{message.sender_name || 'کاربر'}
+											</span>
+											<span className="text-xs text-slate-400 dark:text-slate-500">
+												{new Date(message.created_at).toLocaleString('fa-IR')}
+											</span>
+										</div>
+										<div
+											className={`rounded-2xl p-4 ${
+												isUserMessage
+													? "bg-indigo-50 text-slate-900 dark:bg-indigo-500/20 dark:text-white"
+													: "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
+											}`}
+										>
+											<p className="text-sm leading-relaxed">{message.message}</p>
+										</div>
+										{message.attachments && message.attachments.length > 0 && (
+											<div className="flex flex-wrap gap-2">
+												{message.attachments.map((attachment) => (
+													<div
+														key={attachment.id}
+														className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800"
+													>
+														<Paperclip className="h-3 w-3" />
+														<span>{attachment.file_name}</span>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
+								</div>
+							);
+						})
+					)}
 				</div>
 
 				{/* Reply Form */}

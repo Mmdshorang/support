@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router"
+
+import { useMemo, useState, useEffect } from "react";
 import {
 	AlertTriangle,
 	CheckCircle2,
@@ -8,63 +9,12 @@ import {
 	Plus,
 	Search,
 } from "lucide-react";
+import { requireUser } from "../../lib/auth-guard";
+import { ticketsApi, type Ticket } from "../../services/api/tickets";
+import { toast } from "react-toastify";
 
 type TicketStatus = "در انتظار" | "در حال پیگیری" | "پاسخ داده شده" | "بسته شده";
 type TicketPriority = "کم" | "متوسط" | "زیاد" | "بحرانی";
-
-interface UserTicket {
-	id: number;
-	subject: string;
-	priority: TicketPriority;
-	status: TicketStatus;
-	createdAt: string;
-	updatedAt: string;
-	lastMessage: string;
-	unreadCount: number;
-}
-
-const USER_TICKETS: UserTicket[] = [
-	{
-		id: 1234,
-		subject: "مشکل در ورود به سیستم",
-		priority: "زیاد",
-		status: "در حال پیگیری",
-		createdAt: "1403/08/20",
-		updatedAt: "1403/08/20",
-		lastMessage: "تیم پشتیبانی در حال بررسی مشکل شماست",
-		unreadCount: 2,
-	},
-	{
-		id: 1233,
-		subject: "درخواست فاکتور ماهانه",
-		priority: "متوسط",
-		status: "پاسخ داده شده",
-		createdAt: "1403/08/18",
-		updatedAt: "1403/08/19",
-		lastMessage: "فاکتور برای شما ارسال شد",
-		unreadCount: 1,
-	},
-	{
-		id: 1232,
-		subject: "سوال در مورد قابلیت جدید",
-		priority: "کم",
-		status: "بسته شده",
-		createdAt: "1403/08/15",
-		updatedAt: "1403/08/16",
-		lastMessage: "مشکل شما برطرف شد",
-		unreadCount: 0,
-	},
-	{
-		id: 1231,
-		subject: "خطا در پرداخت آنلاین",
-		priority: "بحرانی",
-		status: "پاسخ داده شده",
-		createdAt: "1403/08/14",
-		updatedAt: "1403/08/15",
-		lastMessage: "مشکل پرداخت رفع شده است",
-		unreadCount: 0,
-	},
-];
 
 const STATUS_STYLES: Record<TicketStatus, string> = {
 	"در انتظار": "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200",
@@ -81,49 +31,110 @@ const PRIORITY_STYLES: Record<TicketPriority, string> = {
 	بحرانی: "text-rose-500",
 };
 
-const STATS = [
-	{
-		title: "تیکت‌های باز",
-		value: "3",
-		icon: MessageSquare,
-		color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-200",
-	},
-	{
-		title: "در انتظار پاسخ",
-		value: "1",
-		icon: Clock,
-		color: "bg-amber-500/10 text-amber-600 dark:text-amber-200",
-	},
-	{
-		title: "پاسخ داده شده",
-		value: "2",
-		icon: CheckCircle2,
-		color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-200",
-	},
-	{
-		title: "بحرانی",
-		value: "0",
-		icon: AlertTriangle,
-		color: "bg-rose-500/10 text-rose-600 dark:text-rose-200",
-	},
-];
+interface StatsData {
+	openTickets: number;
+	pendingTickets: number;
+	answeredTickets: number;
+	criticalTickets: number;
+}
 
 export const Route = createFileRoute("/_user/user-dashboard")({
 	component: UserDashboardPage,
+	beforeLoad: () => {
+		requireUser();
+	},
 });
 
 function UserDashboardPage() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [tickets, setTickets] = useState<Ticket[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [stats, setStats] = useState<StatsData>({
+		openTickets: 0,
+		pendingTickets: 0,
+		answeredTickets: 0,
+		criticalTickets: 0,
+	});
+
+	// Fetch user tickets
+	useEffect(() => {
+		const fetchTickets = async () => {
+			try {
+				setIsLoading(true);
+				const response = await ticketsApi.getTickets({
+					sortBy: 'updated_at',
+					sortOrder: 'desc',
+				})
+
+				setTickets(response.data);
+			} catch (error) {
+				console.error('Error fetching tickets:', error);
+				toast.error('خطا در دریافت تیکت‌ها');
+			} finally {
+				setIsLoading(false);
+			}
+		}
+
+		fetchTickets();
+	}, []);
+
+	// Fetch stats
+	useEffect(() => {
+		const fetchStats = async () => {
+			try {
+				const response = await ticketsApi.getStats();
+				const statsData = response.data;
+
+				setStats({
+					openTickets: statsData.by_status.pending + statsData.by_status.in_progress + statsData.by_status.answered,
+					pendingTickets: statsData.by_status.pending,
+					answeredTickets: statsData.by_status.answered,
+					criticalTickets: statsData.by_priority.critical,
+				})
+			} catch (error) {
+				console.error('Error fetching stats:', error);
+			}
+		}
+
+		fetchStats();
+	}, []);
 
 	const filteredTickets = useMemo(() => {
-		if (!searchQuery.trim()) return USER_TICKETS;
+		if (!searchQuery.trim()) return tickets;
 		const query = searchQuery.toLowerCase();
-		return USER_TICKETS.filter(
+		return tickets.filter(
 			(ticket) =>
 				ticket.subject.toLowerCase().includes(query) ||
 				ticket.id.toString().includes(query),
-		);
-	}, [searchQuery]);
+		)
+	}, [searchQuery, tickets]);
+
+	const STATS = [
+		{
+			title: "تیکت‌های باز",
+			value: stats.openTickets.toString(),
+			icon: MessageSquare,
+			color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-200",
+		},
+		{
+			title: "در انتظار پاسخ",
+			value: stats.pendingTickets.toString(),
+			icon: Clock,
+			color: "bg-amber-500/10 text-amber-600 dark:text-amber-200",
+		},
+		{
+			title: "پاسخ داده شده",
+			value: stats.answeredTickets.toString(),
+			icon: CheckCircle2,
+			color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-200",
+		},
+		{
+			title: "بحرانی",
+			value: stats.criticalTickets.toString(),
+			icon: AlertTriangle,
+			color: "bg-rose-500/10 text-rose-600 dark:text-rose-200",
+		},
+	]
 
 	return (
 		<div className="space-y-6">
@@ -171,7 +182,7 @@ function UserDashboardPage() {
 								</div>
 							</div>
 						</div>
-					);
+					)
 				})}
 			</section>
 
@@ -237,19 +248,19 @@ function UserDashboardPage() {
 											<h3 className="text-base font-semibold text-slate-900 dark:text-white">
 												{ticket.subject}
 											</h3>
-											{ticket.unreadCount > 0 && (
+											{ticket.unread_count && ticket.unread_count > 0 && (
 												<span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
-													{ticket.unreadCount}
+													{ticket.unread_count}
 												</span>
 											)}
 										</div>
 										<p className="text-sm text-slate-500 dark:text-slate-300">
-											{ticket.lastMessage}
+											{ticket.last_message || ticket.description || 'بدون پیام'}
 										</p>
 										<div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
-											<span>ایجاد: {ticket.createdAt}</span>
+											<span>ایجاد: {new Date(ticket.created_at).toLocaleDateString('fa-IR')}</span>
 											<span>•</span>
-											<span>آخرین به‌روزرسانی: {ticket.updatedAt}</span>
+											<span>آخرین به‌روزرسانی: {new Date(ticket.updated_at).toLocaleDateString('fa-IR')}</span>
 										</div>
 									</div>
 									<div className="flex items-center gap-3">
@@ -271,5 +282,5 @@ function UserDashboardPage() {
 				</div>
 			</section>
 		</div>
-	);
+	)
 }

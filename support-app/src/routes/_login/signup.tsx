@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { redirectIfAuthenticated } from "../../lib/auth-guard";
 
 export const Route = createFileRoute("/_login/signup")({
   component: () => (
@@ -7,4 +8,7 @@ export const Route = createFileRoute("/_login/signup")({
       <p>Sign up page.</p>
     </div>
   ),
+  beforeLoad: () => {
+    redirectIfAuthenticated();
+  },
 });

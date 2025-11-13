@@ -1,119 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
 	AlertTriangle,
 	CheckCircle2,
 	Clock3,
 	MessageSquare,
 } from "lucide-react";
+import { requireAdmin } from "../../../lib/auth-guard";
+import { ticketsApi, type Ticket } from "../../../services/api/tickets";
+import { toast } from "react-toastify";
 
 type TicketStatus = "در انتظار" | "در حال پیگیری" | "پاسخ داده شده" | "بسته شده";
 type TicketPriority = "کم" | "متوسط" | "زیاد" | "بحرانی";
 
-interface Ticket {
-	id: number;
-	subject: string;
-	customer: string;
-	priority: TicketPriority;
-	status: TicketStatus;
-	createdAt: string;
-	updatedAt: string;
-	owner: string;
-	channel: "وب" | "تلفن" | "ایمیل" | "واتساپ";
-}
-
-const TICKETS: Ticket[] = [
-	{
-		id: 6589,
-		subject: "عدم امکان چاپ گزارش مالی ماهانه",
-		customer: "شرکت فناوری سپهر",
-		priority: "بحرانی",
-		status: "در حال پیگیری",
-		createdAt: "1403/08/19",
-		updatedAt: "1403/08/20",
-		owner: "مهدی صادقی",
-		channel: "وب",
-	},
-	{
-		id: 6588,
-		subject: "خطای ورود کاربران جدید",
-		customer: "بانک توسعه شرق",
-		priority: "زیاد",
-		status: "در انتظار",
-		createdAt: "1403/08/18",
-		updatedAt: "1403/08/18",
-		owner: "زهرا فتحی",
-		channel: "ایمیل",
-	},
-	{
-		id: 6587,
-		subject: "نیاز به گزارش سفارشی فروش",
-		customer: "گروه صنعتی کیان",
-		priority: "متوسط",
-		status: "پاسخ داده شده",
-		createdAt: "1403/08/17",
-		updatedAt: "1403/08/19",
-		owner: "محمد جهانگیری",
-		channel: "تلفن",
-	},
-	{
-		id: 6586,
-		subject: "انتقال داده از نسخه قدیمی",
-		customer: "هولدینگ آریانا",
-		priority: "زیاد",
-		status: "در حال پیگیری",
-		createdAt: "1403/08/16",
-		updatedAt: "1403/08/18",
-		owner: "سارا زمانی",
-		channel: "وب",
-	},
-	{
-		id: 6585,
-		subject: "عدم ارسال اعلان ایمیلی",
-		customer: "آکادمی حسابان",
-		priority: "متوسط",
-		status: "در انتظار",
-		createdAt: "1403/08/15",
-		updatedAt: "1403/08/17",
-		owner: "مونا رضایی",
-		channel: "واتساپ",
-	},
-	{
-		id: 6584,
-		subject: "سفارشی سازی گردش تایید",
-		customer: "شرکت سرمایه‌گذاری پارس",
-		priority: "زیاد",
-		status: "پاسخ داده شده",
-		createdAt: "1403/08/14",
-		updatedAt: "1403/08/18",
-		owner: "آرین نادری",
-		channel: "وب",
-	},
-	{
-		id: 6583,
-		subject: "آموزش تیم پشتیبانی داخلی",
-		customer: "گروه آیسان",
-		priority: "کم",
-		status: "بسته شده",
-		createdAt: "1403/08/12",
-		updatedAt: "1403/08/16",
-		owner: "نگار کریمی",
-		channel: "ایمیل",
-	},
-	{
-		id: 6582,
-		subject: "اختلال سرویس پرداخت آنلاین",
-		customer: "فروشگاه اینترنتی ماهور",
-		priority: "بحرانی",
-		status: "در حال پیگیری",
-		createdAt: "1403/08/12",
-		updatedAt: "1403/08/12",
-		owner: "میلاد معیری",
-		channel: "وب",
-	},
-];
-
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 10;
 
 const STATUS_STYLES: Record<TicketStatus, string> = {
 	"در انتظار": "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200",
@@ -129,36 +29,12 @@ const PRIORITY_STYLES: Record<TicketPriority, string> = {
 	بحرانی: "text-rose-500",
 };
 
-const KPI_CARDS = [
-	{
-		title: "تیکت‌های باز",
-		value: "48",
-		diff: "+12% نسبت به هفته قبل",
-		icon: MessageSquare,
-		variant: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-200 dark:bg-indigo-500/20",
-	},
-	{
-		title: "زمان پاسخ اولیه",
-		value: "۱۱ دقیقه",
-		diff: "-3 دقیقه سریع‌تر",
-		icon: Clock3,
-		variant: "bg-sky-500/10 text-sky-600 dark:text-sky-200 dark:bg-sky-500/20",
-	},
-	{
-		title: "درخواست‌های بحرانی",
-		value: "6",
-		diff: "۴ مورد جدید",
-		icon: AlertTriangle,
-		variant: "bg-rose-500/10 text-rose-600 dark:text-rose-200 dark:bg-rose-500/20",
-	},
-	{
-		title: "رضایت مشتری",
-		value: "۹۲٪",
-		diff: "+۲٪ رشد داشته",
-		icon: CheckCircle2,
-		variant: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-200 dark:bg-emerald-500/20",
-	},
-];
+interface StatsData {
+	openTickets: number;
+	criticalTickets: number;
+	pendingTickets: number;
+	closedTickets: number;
+}
 
 // const ACTIVITY_TIMELINE = [
 // 	{ time: "۵ دقیقه پیش", description: "تیکت #6589 به «در حال پیگیری» تغییر وضعیت داد.", type: "update" },
@@ -176,21 +52,104 @@ const KPI_CARDS = [
 
 export const Route = createFileRoute("/_admin/_dashboard/dashboard")({
 	component: DashboardPage,
+	beforeLoad: () => {
+		requireAdmin();
+	},
 });
 
 function DashboardPage() {
 	const [page, setPage] = useState(1);
-	const pageCount = Math.ceil(TICKETS.length / PAGE_SIZE);
+	const [tickets, setTickets] = useState<Ticket[]>([]);
+	const [totalPages, setTotalPages] = useState(1);
+	const [stats, setStats] = useState<StatsData>({
+		openTickets: 0,
+		criticalTickets: 0,
+		pendingTickets: 0,
+		closedTickets: 0,
+	});
+	const [isLoading, setIsLoading] = useState(true);
 
-	const paginatedTickets = useMemo(() => {
-		const start = (page - 1) * PAGE_SIZE;
-		return TICKETS.slice(start, start + PAGE_SIZE);
+	// Fetch tickets
+	useEffect(() => {
+		const fetchTickets = async () => {
+			try {
+				setIsLoading(true);
+				const response = await ticketsApi.getTickets({
+					page,
+					limit: PAGE_SIZE,
+					sortBy: 'updated_at',
+					sortOrder: 'desc',
+				});
+
+				setTickets(response.data);
+				setTotalPages(response.pagination.totalPages);
+			} catch (error) {
+				console.error('Error fetching tickets:', error);
+				toast.error('خطا در دریافت تیکت‌ها');
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchTickets();
 	}, [page]);
 
+	// Fetch stats
+	useEffect(() => {
+		const fetchStats = async () => {
+			try {
+				const response = await ticketsApi.getStats();
+				const statsData = response.data;
+
+				setStats({
+					openTickets: statsData.by_status.pending + statsData.by_status.in_progress + statsData.by_status.answered,
+					criticalTickets: statsData.by_priority.critical,
+					pendingTickets: statsData.by_status.pending,
+					closedTickets: statsData.by_status.closed,
+				});
+			} catch (error) {
+				console.error('Error fetching stats:', error);
+			}
+		};
+
+		fetchStats();
+	}, []);
+
 	const handleChangePage = (nextPage: number) => {
-		if (nextPage < 1 || nextPage > pageCount) return;
+		if (nextPage < 1 || nextPage > totalPages) return;
 		setPage(nextPage);
-	}
+	};
+
+	const KPI_CARDS = [
+		{
+			title: "تیکت‌های باز",
+			value: stats.openTickets.toString(),
+			diff: "تیکت‌های فعال",
+			icon: MessageSquare,
+			variant: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-200 dark:bg-indigo-500/20",
+		},
+		{
+			title: "در انتظار",
+			value: stats.pendingTickets.toString(),
+			diff: "نیاز به رسیدگی",
+			icon: Clock3,
+			variant: "bg-sky-500/10 text-sky-600 dark:text-sky-200 dark:bg-sky-500/20",
+		},
+		{
+			title: "درخواست‌های بحرانی",
+			value: stats.criticalTickets.toString(),
+			diff: "فوری و مهم",
+			icon: AlertTriangle,
+			variant: "bg-rose-500/10 text-rose-600 dark:text-rose-200 dark:bg-rose-500/20",
+		},
+		{
+			title: "بسته شده",
+			value: stats.closedTickets.toString(),
+			diff: "تکمیل شده",
+			icon: CheckCircle2,
+			variant: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-200 dark:bg-emerald-500/20",
+		},
+	];
 
 	return (
 		<div className="space-y-6">
@@ -231,20 +190,34 @@ function DashboardPage() {
 					</header>
 
 					<div className="overflow-x-auto">
-						<table className="min-w-full table-fixed border-separate border-spacing-y-3 text-sm">
-							<thead>
-								<tr className="text-right text-xs font-semibold text-slate-500 dark:text-slate-300">
-									<th className="rounded-r-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">تیکت</th>
-									<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">مشتری</th>
-									<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">اولویت</th>
-									<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">وضعیت</th>
-									<th className="hidden bg-slate-100/70 px-3 py-2 md:table-cell dark:bg-slate-800/70">مسئول</th>
-									<th className="hidden bg-slate-100/70 px-3 py-2 lg:table-cell dark:bg-slate-800/70">کانال</th>
-									<th className="rounded-l-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">به‌روزرسانی</th>
-								</tr>
-							</thead>
-							<tbody>
-								{paginatedTickets.map((ticket) => (
+						{isLoading ? (
+							<div className="flex items-center justify-center py-12">
+								<div className="text-center">
+									<div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+									<p className="mt-3 text-sm text-slate-500 dark:text-slate-300">در حال بارگذاری...</p>
+								</div>
+							</div>
+						) : tickets.length === 0 ? (
+							<div className="flex items-center justify-center py-12">
+								<div className="text-center">
+									<p className="text-sm text-slate-500 dark:text-slate-300">تیکتی یافت نشد</p>
+								</div>
+							</div>
+						) : (
+							<table className="min-w-full table-fixed border-separate border-spacing-y-3 text-sm">
+								<thead>
+									<tr className="text-right text-xs font-semibold text-slate-500 dark:text-slate-300">
+										<th className="rounded-r-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">تیکت</th>
+										<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">مشتری</th>
+										<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">اولویت</th>
+										<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">وضعیت</th>
+										<th className="hidden bg-slate-100/70 px-3 py-2 md:table-cell dark:bg-slate-800/70">مسئول</th>
+										<th className="hidden bg-slate-100/70 px-3 py-2 lg:table-cell dark:bg-slate-800/70">کانال</th>
+										<th className="rounded-l-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">به‌روزرسانی</th>
+									</tr>
+								</thead>
+								<tbody>
+									{tickets.map((ticket) => (
 									<tr
 										key={ticket.id}
 										className="cursor-pointer rounded-2xl bg-white/80 text-slate-700 transition hover:-translate-y-0.5 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70 dark:hover:text-white"
@@ -257,8 +230,8 @@ function DashboardPage() {
 										</td>
 										<td className="px-3 py-4">
 											<div className="space-y-1">
-												<p className="font-medium">{ticket.customer}</p>
-												<p className="text-xs text-slate-400 dark:text-slate-300">ایجاد {ticket.createdAt}</p>
+												<p className="font-medium">{ticket.customer || 'نامشخص'}</p>
+												<p className="text-xs text-slate-400 dark:text-slate-300">ایجاد {new Date(ticket.created_at).toLocaleDateString('fa-IR')}</p>
 											</div>
 										</td>
 										<td className={`px-3 py-4 text-sm font-bold ${PRIORITY_STYLES[ticket.priority]}`}>{ticket.priority}</td>
@@ -268,22 +241,25 @@ function DashboardPage() {
 											</span>
 										</td>
 										<td className="hidden px-3 py-4 md:table-cell">
-											<p className="text-sm font-medium">{ticket.owner}</p>
+											<p className="text-sm font-medium">{ticket.assigned_to_name || 'تخصیص نیافته'}</p>
 											<p className="text-xs text-slate-400 dark:text-slate-300">واحد پشتیبانی</p>
 										</td>
 										<td className="hidden px-3 py-4 text-xs font-medium text-slate-500 lg:table-cell dark:text-slate-300">
 											{ticket.channel}
 										</td>
 										<td className="rounded-l-2xl px-3 py-4 text-xs font-medium text-slate-500 dark:text-slate-300">
-											{ticket.updatedAt}
+											{new Date(ticket.updated_at).toLocaleDateString('fa-IR')}
 										</td>
 									</tr>
 								))}
 							</tbody>
 						</table>
+						)}
 					</div>
 
-					<Pagination page={page} pageCount={pageCount} onChange={handleChangePage} />
+					{!isLoading && tickets.length > 0 && (
+						<Pagination page={page} pageCount={totalPages} onChange={handleChangePage} />
+					)}
 				</div>
 
 				{/* <aside className="space-y-6 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">

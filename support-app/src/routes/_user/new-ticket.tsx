@@ -1,43 +1,70 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Paperclip, Send, X } from "lucide-react";
-
-type TicketPriority = "کم" | "متوسط" | "زیاد" | "بحرانی";
-type TicketCategory =
-	| "فنی"
-	| "مالی"
-	| "پشتیبانی"
-	| "فروش"
-	| "درخواست ویژگی"
-	| "سایر";
+import { requireAuth } from "../../lib/auth-guard";
+import { ticketsApi, type TicketPriority } from "../../services/api/tickets";
+import { categoriesApi, type Category } from "../../services/api/categories";
+import { toast } from "react-toastify";
 
 export const Route = createFileRoute("/_user/new-ticket")({
 	component: NewTicketPage,
+	beforeLoad: () => {
+		requireAuth();
+	},
 });
 
 function NewTicketPage() {
 	const navigate = useNavigate();
+	const [categories, setCategories] = useState<Category[]>([]);
 	const [formData, setFormData] = useState({
 		subject: "",
-		category: "" as TicketCategory | "",
+		category_id: "",
 		priority: "" as TicketPriority | "",
 		description: "",
 	});
 	const [attachments, setAttachments] = useState<File[]>([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
+	// Fetch categories
+	useEffect(() => {
+		const fetchCategories = async () => {
+			try {
+				const response = await categoriesApi.getCategories();
+				setCategories(response.data.filter(cat => cat.is_active));
+			} catch (error) {
+				console.error('Error fetching categories:', error);
+				toast.error('خطا در دریافت دسته‌بندی‌ها');
+			}
+		};
+
+		fetchCategories();
+	}, []);
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!formData.subject || !formData.category || !formData.priority || !formData.description) {
+		if (!formData.subject || !formData.category_id || !formData.priority || !formData.description) {
+			toast.error('لطفاً تمام فیلدها را پر کنید');
 			return;
 		}
 
 		setIsSubmitting(true);
-		// اینجا باید تیکت را به سرور ارسال کنید
-		await new Promise((resolve) => setTimeout(resolve, 1500));
+		try {
+			await ticketsApi.createTicket({
+				subject: formData.subject,
+				description: formData.description,
+				category_id: formData.category_id,
+				priority: formData.priority,
+				channel: "وب",
+			});
 
-		// بعد از ارسال موفق، به داشبورد برگردید
-		navigate({ to: "/user-dashboard" });
+			toast.success('تیکت با موفقیت ثبت شد');
+			navigate({ to: "/user-dashboard" });
+		} catch (error: any) {
+			console.error('Error creating ticket:', error);
+			toast.error(error.response?.data?.message || 'خطا در ثبت تیکت');
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,22 +135,21 @@ function NewTicketPage() {
 							<select
 								id="category"
 								required
-								value={formData.category}
+								value={formData.category_id}
 								onChange={(e) =>
 									setFormData({
 										...formData,
-										category: e.target.value as TicketCategory,
+										category_id: e.target.value,
 									})
 								}
 								className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
 							>
 								<option value="">انتخاب کنید</option>
-								<option value="فنی">فنی</option>
-								<option value="مالی">مالی</option>
-								<option value="پشتیبانی">پشتیبانی</option>
-								<option value="فروش">فروش</option>
-								<option value="درخواست ویژگی">درخواست ویژگی</option>
-								<option value="سایر">سایر</option>
+								{categories.map((cat) => (
+									<option key={cat.id} value={cat.id}>
+										{cat.name}
+									</option>
+								))}
 							</select>
 						</div>
 
