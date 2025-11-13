@@ -44,7 +44,7 @@ export default function Sidebar({
 						className={`font-bold text-xl text-indigo-600 dark:text-indigo-400 transition-opacity duration-200 ${!sidebarOpen ? "opacity-0" : "opacity-100"
 							}`}
 					>
-						اکوسیستم
+						پشتیبانی
 					</span>
 					<div className="flex items-center gap-x-2">
 						<ThemeSwitcher />

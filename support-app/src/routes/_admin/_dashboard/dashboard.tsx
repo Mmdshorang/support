@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
 	AlertTriangle,
-	ArrowDownLeft,
-	ArrowUpRight,
 	CheckCircle2,
 	Clock3,
 	MessageSquare,
@@ -162,21 +160,21 @@ const KPI_CARDS = [
 	},
 ];
 
-const ACTIVITY_TIMELINE = [
-	{ time: "۵ دقیقه پیش", description: "تیکت #6589 به «در حال پیگیری» تغییر وضعیت داد.", type: "update" },
-	{ time: "۲۲ دقیقه پیش", description: "پیام جدید از «بانک توسعه شرق» در تیکت #6588 ثبت شد.", type: "message" },
-	{ time: "۱ ساعت پیش", description: "گزارش هفتگی عملکرد تیم پشتیبانی منتشر شد.", type: "report" },
-	{ time: "دیروز", description: "تیکت بحرانی #6582 به تیم زیرساخت ارجاع شد.", type: "critical" },
-];
+// const ACTIVITY_TIMELINE = [
+// 	{ time: "۵ دقیقه پیش", description: "تیکت #6589 به «در حال پیگیری» تغییر وضعیت داد.", type: "update" },
+// 	{ time: "۲۲ دقیقه پیش", description: "پیام جدید از «بانک توسعه شرق» در تیکت #6588 ثبت شد.", type: "message" },
+// 	{ time: "۱ ساعت پیش", description: "گزارش هفتگی عملکرد تیم پشتیبانی منتشر شد.", type: "report" },
+// 	{ time: "دیروز", description: "تیکت بحرانی #6582 به تیم زیرساخت ارجاع شد.", type: "critical" },
+// ];
 
-const TICKET_HEALTH = [
-	{ label: "در انتظار", value: 18, trend: 6 },
-	{ label: "در حال پیگیری", value: 22, trend: -4 },
-	{ label: "پاسخ داده شده", value: 46, trend: 8 },
-	{ label: "بسته شده", value: 31, trend: -2 },
-];
+// const TICKET_HEALTH = [
+// 	{ label: "در انتظار", value: 18, trend: 6 },
+// 	{ label: "در حال پیگیری", value: 22, trend: -4 },
+// 	{ label: "پاسخ داده شده", value: 46, trend: 8 },
+// 	{ label: "بسته شده", value: 31, trend: -2 },
+// ];
 
-export const Route = createFileRoute("/_dashboard/dashboard")({
+export const Route = createFileRoute("/_admin/_dashboard/dashboard")({
 	component: DashboardPage,
 });
 
@@ -192,7 +190,7 @@ function DashboardPage() {
 	const handleChangePage = (nextPage: number) => {
 		if (nextPage < 1 || nextPage > pageCount) return;
 		setPage(nextPage);
-	};
+	}
 
 	return (
 		<div className="space-y-6">
@@ -216,11 +214,11 @@ function DashboardPage() {
 							</div>
 							<div className="absolute -bottom-16 inset-x-4 h-24 rounded-full bg-gradient-to-br from-indigo-100 via-purple-100 to-transparent opacity-70 blur-3xl dark:from-indigo-500/30 dark:via-purple-500/20" />
 						</div>
-					);
+					)
 				})}
 			</section>
 
-			<section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+			<section className="grid grid-cols-1 gap-6 ">
 				<div className="xl:col-span-2 space-y-4 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
 					<header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						<div>
@@ -288,7 +286,7 @@ function DashboardPage() {
 					<Pagination page={page} pageCount={pageCount} onChange={handleChangePage} />
 				</div>
 
-				<aside className="space-y-6 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
+				{/* <aside className="space-y-6 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
 					<div className="space-y-4">
 						<h3 className="text-base font-semibold text-slate-900 dark:text-white">نمای کلی سلامت تیکت‌ها</h3>
 						<ul className="space-y-3">
@@ -336,10 +334,10 @@ function DashboardPage() {
 							))}
 						</ul>
 					</div>
-				</aside>
+				</aside> */}
 			</section>
 		</div>
-	);
+	)
 }
 
 interface PaginationProps {
@@ -389,5 +387,5 @@ function Pagination({ page, pageCount, onChange }: PaginationProps) {
 				</button>
 			</div>
 		</div>
-	);
+	)
 }

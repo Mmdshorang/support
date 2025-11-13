@@ -115,7 +115,7 @@ export default function SimpleSelect({
         type="button"
         onClick={() => !disabled && setOpen((s) => !s)}
         className={`w-full min-w-[300px] flex items-center gap-2 p-2 rounded-md border ${
-          disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'
+          disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray'
         }`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -151,7 +151,7 @@ export default function SimpleSelect({
       </button>
 
       <div
-        className={`absolute z-50 mt-1 w-full rounded-md shadow-lg bg-white border ${
+        className={`absolute z-50 mt-1 w-full rounded-md shadow-lg bg-gray border ${
           open ? 'block' : 'hidden'
         }`}
       >
@@ -190,8 +190,8 @@ export default function SimpleSelect({
                   aria-selected={isSelected}
                   onMouseEnter={() => setHighlighted(i)}
                   onClick={() => selectItem(o)}
-                  className={`cursor-pointer select-none p-2 rounded-md flex items-center justify-between hover:bg-gray-100 ${
-                    isHighlighted ? 'bg-gray-100' : ''
+                  className={`cursor-pointer select-none p-2 rounded-md flex items-center justify-between hover:bg-gray-500 ${
+                    isHighlighted ? 'bg-gray-600' : ''
                   }`}
                 >
                   <span className={`truncate ${isSelected ? 'font-semibold' : ''}`}>{o.label}</span>

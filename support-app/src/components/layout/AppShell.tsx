@@ -63,56 +63,48 @@ const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
 		pattern: /^\/$/,
 		meta: {
 			title: "خانه",
-			subtitle: "به پورتال پشتیبانی حسابان خوش آمدید",
 		},
 	},
 	{
 		pattern: /^\/dashboard/,
 		meta: {
 			title: "داشبورد مدیریتی",
-			subtitle: "شاخص‌ها و وضعیت کلی درخواست‌ها در یک نگاه",
 		},
 	},
 	{
 		pattern: /^\/user-dashboard/,
 		meta: {
 			title: "داشبورد من",
-			subtitle: "مدیریت و پیگیری تیکت‌های پشتیبانی خود",
 		},
 	},
 	{
 		pattern: /^\/user\/new-ticket/,
 		meta: {
 			title: "ثبت تیکت جدید",
-			subtitle: "مشکل یا درخواست خود را با ما در میان بگذارید",
 		},
 	},
 	{
 		pattern: /^\/user\/tickets/,
 		meta: {
 			title: "جزئیات تیکت",
-			subtitle: "مشاهده پیام‌ها و پاسخ به تیکت",
 		},
 	},
 	{
 		pattern: /^\/submitTicket/,
 		meta: {
 			title: "ثبت تیکت پشتیبانی",
-			subtitle: "مشکل خود را ثبت کنید تا در سریع‌ترین زمان پیگیری شود",
 		},
 	},
 	{
 		pattern: /^\/statusTicket/,
 		meta: {
 			title: "وضعیت تیکت‌ها",
-			subtitle: "پیگیری و مدیریت درخواست‌های فعال",
 		},
 	},
 	{
 		pattern: /^\/report/,
 		meta: {
 			title: "گزارش‌های تحلیلی",
-			subtitle: "بررسی روند کیفیت خدمات و عملکرد تیم‌ها",
 		},
 	},
 ];
