@@ -10,35 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ComponentIndexRouteImport } from './routes/component/index'
-import { Route as ComponentIconsRouteImport } from './routes/component/icons'
 import { Route as UserUserDashboardRouteImport } from './routes/_user/user-dashboard'
 import { Route as UserNewTicketRouteImport } from './routes/_user/new-ticket'
-import { Route as SubmitTicketSubmitTicketRouteImport } from './routes/_submitTicket/submitTicket'
-import { Route as StatusTicketStatusTicketRouteImport } from './routes/_statusTicket/statusTicket'
-import { Route as ReportReportRouteImport } from './routes/_report/report'
-import { Route as ProblemsSubmitTypesProblemRouteImport } from './routes/_problems/submitTypesProblem'
 import { Route as LoginSignupRouteImport } from './routes/_login/signup'
 import { Route as LoginLogoutRouteImport } from './routes/_login/logout'
 import { Route as LoginLoginRouteImport } from './routes/_login/login'
-import { Route as LoginHomeRouteImport } from './routes/_login/home'
-import { Route as DashboardDashboardRouteImport } from './routes/_dashboard/dashboard'
-import { Route as CustomerCustomerRegistrationRouteImport } from './routes/_customer/customerRegistration'
 import { Route as UserTicketsTicketIdRouteImport } from './routes/_user/tickets/$ticketId'
+import { Route as UserSubmitTicketSubmitTicketRouteImport } from './routes/_user/_submitTicket/submitTicket'
+import { Route as AdminStatusTicketStatusTicketRouteImport } from './routes/_admin/_statusTicket/statusTicket'
+import { Route as AdminReportReportRouteImport } from './routes/_admin/_report/report'
+import { Route as AdminProblemsSubmitTypesProblemRouteImport } from './routes/_admin/_problems/submitTypesProblem'
+import { Route as AdminDashboardDashboardRouteImport } from './routes/_admin/_dashboard/dashboard'
+import { Route as AdminCustomerCustomerRegistrationRouteImport } from './routes/_admin/_customer/customerRegistration'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComponentIndexRoute = ComponentIndexRouteImport.update({
-  id: '/component/',
-  path: '/component/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComponentIconsRoute = ComponentIconsRouteImport.update({
-  id: '/component/icons',
-  path: '/component/icons',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserUserDashboardRoute = UserUserDashboardRouteImport.update({
@@ -51,29 +38,6 @@ const UserNewTicketRoute = UserNewTicketRouteImport.update({
   path: '/new-ticket',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SubmitTicketSubmitTicketRoute =
-  SubmitTicketSubmitTicketRouteImport.update({
-    id: '/_submitTicket/submitTicket',
-    path: '/submitTicket',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const StatusTicketStatusTicketRoute =
-  StatusTicketStatusTicketRouteImport.update({
-    id: '/_statusTicket/statusTicket',
-    path: '/statusTicket',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ReportReportRoute = ReportReportRouteImport.update({
-  id: '/_report/report',
-  path: '/report',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProblemsSubmitTypesProblemRoute =
-  ProblemsSubmitTypesProblemRouteImport.update({
-    id: '/_problems/submitTypesProblem',
-    path: '/submitTypesProblem',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const LoginSignupRoute = LoginSignupRouteImport.update({
   id: '/_login/signup',
   path: '/signup',
@@ -89,156 +53,153 @@ const LoginLoginRoute = LoginLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginHomeRoute = LoginHomeRouteImport.update({
-  id: '/_login/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardDashboardRoute = DashboardDashboardRouteImport.update({
-  id: '/_dashboard/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CustomerCustomerRegistrationRoute =
-  CustomerCustomerRegistrationRouteImport.update({
-    id: '/_customer/customerRegistration',
-    path: '/customerRegistration',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const UserTicketsTicketIdRoute = UserTicketsTicketIdRouteImport.update({
   id: '/_user/tickets/$ticketId',
   path: '/tickets/$ticketId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UserSubmitTicketSubmitTicketRoute =
+  UserSubmitTicketSubmitTicketRouteImport.update({
+    id: '/_user/_submitTicket/submitTicket',
+    path: '/submitTicket',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminStatusTicketStatusTicketRoute =
+  AdminStatusTicketStatusTicketRouteImport.update({
+    id: '/_admin/_statusTicket/statusTicket',
+    path: '/statusTicket',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminReportReportRoute = AdminReportReportRouteImport.update({
+  id: '/_admin/_report/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProblemsSubmitTypesProblemRoute =
+  AdminProblemsSubmitTypesProblemRouteImport.update({
+    id: '/_admin/_problems/submitTypesProblem',
+    path: '/submitTypesProblem',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminDashboardDashboardRoute = AdminDashboardDashboardRouteImport.update({
+  id: '/_admin/_dashboard/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCustomerCustomerRegistrationRoute =
+  AdminCustomerCustomerRegistrationRouteImport.update({
+    id: '/_admin/_customer/customerRegistration',
+    path: '/customerRegistration',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/customerRegistration': typeof CustomerCustomerRegistrationRoute
-  '/dashboard': typeof DashboardDashboardRoute
-  '/home': typeof LoginHomeRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/signup': typeof LoginSignupRoute
-  '/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
-  '/report': typeof ReportReportRoute
-  '/statusTicket': typeof StatusTicketStatusTicketRoute
-  '/submitTicket': typeof SubmitTicketSubmitTicketRoute
   '/new-ticket': typeof UserNewTicketRoute
   '/user-dashboard': typeof UserUserDashboardRoute
-  '/component/icons': typeof ComponentIconsRoute
-  '/component': typeof ComponentIndexRoute
+  '/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
+  '/dashboard': typeof AdminDashboardDashboardRoute
+  '/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
+  '/report': typeof AdminReportReportRoute
+  '/statusTicket': typeof AdminStatusTicketStatusTicketRoute
+  '/submitTicket': typeof UserSubmitTicketSubmitTicketRoute
   '/tickets/$ticketId': typeof UserTicketsTicketIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/customerRegistration': typeof CustomerCustomerRegistrationRoute
-  '/dashboard': typeof DashboardDashboardRoute
-  '/home': typeof LoginHomeRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/signup': typeof LoginSignupRoute
-  '/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
-  '/report': typeof ReportReportRoute
-  '/statusTicket': typeof StatusTicketStatusTicketRoute
-  '/submitTicket': typeof SubmitTicketSubmitTicketRoute
   '/new-ticket': typeof UserNewTicketRoute
   '/user-dashboard': typeof UserUserDashboardRoute
-  '/component/icons': typeof ComponentIconsRoute
-  '/component': typeof ComponentIndexRoute
+  '/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
+  '/dashboard': typeof AdminDashboardDashboardRoute
+  '/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
+  '/report': typeof AdminReportReportRoute
+  '/statusTicket': typeof AdminStatusTicketStatusTicketRoute
+  '/submitTicket': typeof UserSubmitTicketSubmitTicketRoute
   '/tickets/$ticketId': typeof UserTicketsTicketIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_customer/customerRegistration': typeof CustomerCustomerRegistrationRoute
-  '/_dashboard/dashboard': typeof DashboardDashboardRoute
-  '/_login/home': typeof LoginHomeRoute
   '/_login/login': typeof LoginLoginRoute
   '/_login/logout': typeof LoginLogoutRoute
   '/_login/signup': typeof LoginSignupRoute
-  '/_problems/submitTypesProblem': typeof ProblemsSubmitTypesProblemRoute
-  '/_report/report': typeof ReportReportRoute
-  '/_statusTicket/statusTicket': typeof StatusTicketStatusTicketRoute
-  '/_submitTicket/submitTicket': typeof SubmitTicketSubmitTicketRoute
   '/_user/new-ticket': typeof UserNewTicketRoute
   '/_user/user-dashboard': typeof UserUserDashboardRoute
-  '/component/icons': typeof ComponentIconsRoute
-  '/component/': typeof ComponentIndexRoute
+  '/_admin/_customer/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
+  '/_admin/_dashboard/dashboard': typeof AdminDashboardDashboardRoute
+  '/_admin/_problems/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
+  '/_admin/_report/report': typeof AdminReportReportRoute
+  '/_admin/_statusTicket/statusTicket': typeof AdminStatusTicketStatusTicketRoute
+  '/_user/_submitTicket/submitTicket': typeof UserSubmitTicketSubmitTicketRoute
   '/_user/tickets/$ticketId': typeof UserTicketsTicketIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/customerRegistration'
-    | '/dashboard'
-    | '/home'
     | '/login'
     | '/logout'
     | '/signup'
+    | '/new-ticket'
+    | '/user-dashboard'
+    | '/customerRegistration'
+    | '/dashboard'
     | '/submitTypesProblem'
     | '/report'
     | '/statusTicket'
     | '/submitTicket'
-    | '/new-ticket'
-    | '/user-dashboard'
-    | '/component/icons'
-    | '/component'
     | '/tickets/$ticketId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/customerRegistration'
-    | '/dashboard'
-    | '/home'
     | '/login'
     | '/logout'
     | '/signup'
+    | '/new-ticket'
+    | '/user-dashboard'
+    | '/customerRegistration'
+    | '/dashboard'
     | '/submitTypesProblem'
     | '/report'
     | '/statusTicket'
     | '/submitTicket'
-    | '/new-ticket'
-    | '/user-dashboard'
-    | '/component/icons'
-    | '/component'
     | '/tickets/$ticketId'
   id:
     | '__root__'
     | '/'
-    | '/_customer/customerRegistration'
-    | '/_dashboard/dashboard'
-    | '/_login/home'
     | '/_login/login'
     | '/_login/logout'
     | '/_login/signup'
-    | '/_problems/submitTypesProblem'
-    | '/_report/report'
-    | '/_statusTicket/statusTicket'
-    | '/_submitTicket/submitTicket'
     | '/_user/new-ticket'
     | '/_user/user-dashboard'
-    | '/component/icons'
-    | '/component/'
+    | '/_admin/_customer/customerRegistration'
+    | '/_admin/_dashboard/dashboard'
+    | '/_admin/_problems/submitTypesProblem'
+    | '/_admin/_report/report'
+    | '/_admin/_statusTicket/statusTicket'
+    | '/_user/_submitTicket/submitTicket'
     | '/_user/tickets/$ticketId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CustomerCustomerRegistrationRoute: typeof CustomerCustomerRegistrationRoute
-  DashboardDashboardRoute: typeof DashboardDashboardRoute
-  LoginHomeRoute: typeof LoginHomeRoute
   LoginLoginRoute: typeof LoginLoginRoute
   LoginLogoutRoute: typeof LoginLogoutRoute
   LoginSignupRoute: typeof LoginSignupRoute
-  ProblemsSubmitTypesProblemRoute: typeof ProblemsSubmitTypesProblemRoute
-  ReportReportRoute: typeof ReportReportRoute
-  StatusTicketStatusTicketRoute: typeof StatusTicketStatusTicketRoute
-  SubmitTicketSubmitTicketRoute: typeof SubmitTicketSubmitTicketRoute
   UserNewTicketRoute: typeof UserNewTicketRoute
   UserUserDashboardRoute: typeof UserUserDashboardRoute
-  ComponentIconsRoute: typeof ComponentIconsRoute
-  ComponentIndexRoute: typeof ComponentIndexRoute
+  AdminCustomerCustomerRegistrationRoute: typeof AdminCustomerCustomerRegistrationRoute
+  AdminDashboardDashboardRoute: typeof AdminDashboardDashboardRoute
+  AdminProblemsSubmitTypesProblemRoute: typeof AdminProblemsSubmitTypesProblemRoute
+  AdminReportReportRoute: typeof AdminReportReportRoute
+  AdminStatusTicketStatusTicketRoute: typeof AdminStatusTicketStatusTicketRoute
+  UserSubmitTicketSubmitTicketRoute: typeof UserSubmitTicketSubmitTicketRoute
   UserTicketsTicketIdRoute: typeof UserTicketsTicketIdRoute
 }
 
@@ -249,20 +210,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/component/': {
-      id: '/component/'
-      path: '/component'
-      fullPath: '/component'
-      preLoaderRoute: typeof ComponentIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/component/icons': {
-      id: '/component/icons'
-      path: '/component/icons'
-      fullPath: '/component/icons'
-      preLoaderRoute: typeof ComponentIconsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_user/user-dashboard': {
@@ -277,34 +224,6 @@ declare module '@tanstack/react-router' {
       path: '/new-ticket'
       fullPath: '/new-ticket'
       preLoaderRoute: typeof UserNewTicketRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_submitTicket/submitTicket': {
-      id: '/_submitTicket/submitTicket'
-      path: '/submitTicket'
-      fullPath: '/submitTicket'
-      preLoaderRoute: typeof SubmitTicketSubmitTicketRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_statusTicket/statusTicket': {
-      id: '/_statusTicket/statusTicket'
-      path: '/statusTicket'
-      fullPath: '/statusTicket'
-      preLoaderRoute: typeof StatusTicketStatusTicketRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_report/report': {
-      id: '/_report/report'
-      path: '/report'
-      fullPath: '/report'
-      preLoaderRoute: typeof ReportReportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_problems/submitTypesProblem': {
-      id: '/_problems/submitTypesProblem'
-      path: '/submitTypesProblem'
-      fullPath: '/submitTypesProblem'
-      preLoaderRoute: typeof ProblemsSubmitTypesProblemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_login/signup': {
@@ -328,27 +247,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_login/home': {
-      id: '/_login/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof LoginHomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_dashboard/dashboard': {
-      id: '/_dashboard/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_customer/customerRegistration': {
-      id: '/_customer/customerRegistration'
-      path: '/customerRegistration'
-      fullPath: '/customerRegistration'
-      preLoaderRoute: typeof CustomerCustomerRegistrationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_user/tickets/$ticketId': {
       id: '/_user/tickets/$ticketId'
       path: '/tickets/$ticketId'
@@ -356,25 +254,65 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserTicketsTicketIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_user/_submitTicket/submitTicket': {
+      id: '/_user/_submitTicket/submitTicket'
+      path: '/submitTicket'
+      fullPath: '/submitTicket'
+      preLoaderRoute: typeof UserSubmitTicketSubmitTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/_statusTicket/statusTicket': {
+      id: '/_admin/_statusTicket/statusTicket'
+      path: '/statusTicket'
+      fullPath: '/statusTicket'
+      preLoaderRoute: typeof AdminStatusTicketStatusTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/_report/report': {
+      id: '/_admin/_report/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof AdminReportReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/_problems/submitTypesProblem': {
+      id: '/_admin/_problems/submitTypesProblem'
+      path: '/submitTypesProblem'
+      fullPath: '/submitTypesProblem'
+      preLoaderRoute: typeof AdminProblemsSubmitTypesProblemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/_dashboard/dashboard': {
+      id: '/_admin/_dashboard/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AdminDashboardDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/_customer/customerRegistration': {
+      id: '/_admin/_customer/customerRegistration'
+      path: '/customerRegistration'
+      fullPath: '/customerRegistration'
+      preLoaderRoute: typeof AdminCustomerCustomerRegistrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CustomerCustomerRegistrationRoute: CustomerCustomerRegistrationRoute,
-  DashboardDashboardRoute: DashboardDashboardRoute,
-  LoginHomeRoute: LoginHomeRoute,
   LoginLoginRoute: LoginLoginRoute,
   LoginLogoutRoute: LoginLogoutRoute,
   LoginSignupRoute: LoginSignupRoute,
-  ProblemsSubmitTypesProblemRoute: ProblemsSubmitTypesProblemRoute,
-  ReportReportRoute: ReportReportRoute,
-  StatusTicketStatusTicketRoute: StatusTicketStatusTicketRoute,
-  SubmitTicketSubmitTicketRoute: SubmitTicketSubmitTicketRoute,
   UserNewTicketRoute: UserNewTicketRoute,
   UserUserDashboardRoute: UserUserDashboardRoute,
-  ComponentIconsRoute: ComponentIconsRoute,
-  ComponentIndexRoute: ComponentIndexRoute,
+  AdminCustomerCustomerRegistrationRoute:
+    AdminCustomerCustomerRegistrationRoute,
+  AdminDashboardDashboardRoute: AdminDashboardDashboardRoute,
+  AdminProblemsSubmitTypesProblemRoute: AdminProblemsSubmitTypesProblemRoute,
+  AdminReportReportRoute: AdminReportReportRoute,
+  AdminStatusTicketStatusTicketRoute: AdminStatusTicketStatusTicketRoute,
+  UserSubmitTicketSubmitTicketRoute: UserSubmitTicketSubmitTicketRoute,
   UserTicketsTicketIdRoute: UserTicketsTicketIdRoute,
 }
 export const routeTree = rootRouteImport

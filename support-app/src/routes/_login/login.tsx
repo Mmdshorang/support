@@ -41,17 +41,19 @@ function LoginPage() {
 
         // Redirect based on role
         setTimeout(() => {
-          if (response.data.user.role === "admin" || response.data.user.role === "support") {
+          if (
+            response.data.user.role === "admin" ||
+            response.data.user.role === "support"
+          ) {
             navigate({ to: "/dashboard" });
           } else {
             navigate({ to: "/user-dashboard" });
           }
         }, 500);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
-      const errorMessage =
-        error.response?.data?.message || "خطا در ورود به سیستم. لطفاً دوباره تلاش کنید";
+      const errorMessage = "ارور";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
