@@ -43,16 +43,9 @@ function LoginPage() {
         // Show success message
         toast.success(response.message || "ورود با موفقیت انجام شد");
 
-        // Redirect based on role
+        // Redirect to unified dashboard
         setTimeout(() => {
-          if (
-            response.data.user.role === "admin" ||
-            response.data.user.role === "support"
-          ) {
-            navigate({ to: "/dashboard" });
-          } else {
-            navigate({ to: "/user-dashboard" });
-          }
+          navigate({ to: "/dashboard" });
         }, 500);
       }
     } catch (error) {

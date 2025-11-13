@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import moment from "jalali-moment";
+import { toast } from "react-toastify";
 import DatePicker from "../../components/common/DatePicker";
+import { ticketsApi } from "../../services/api/tickets";
+import type { Ticket as ApiTicket } from "../../services/api/tickets";
 
 interface Ticket {
   id: number;
@@ -44,44 +47,46 @@ const TYPE_LABELS: Record<
   },
 };
 
-const MOCK_TICKETS: Ticket[] = [
-  {
-    id: 6589,
-    name: "شرکت راهکاران",
-    phone: "02188990011",
-    problem: "اختلال در همگام‌سازی اسناد فروش",
-    solution: "بازسازی صف پیام و همگام سازی دستی",
-    typeSupport: "remote",
-    status: "open",
-    date: "1403/08/19",
-  },
-  {
-    id: 6590,
-    name: "علی رضایی",
-    phone: "09120000000",
-    problem: "کندی داشبورد مدیریت",
-    solution: "بهینه‌سازی ایندکس‌های پایگاه داده",
-    typeSupport: "inPerson",
-    status: "closed",
-    date: "1403/08/18",
-  },
-  {
-    id: 6591,
-    name: "بانک توسعه شرق",
-    phone: "02122223344",
-    problem: "عدم ارسال اعلان موبایل",
-    solution: "بازنشانی گواهی Push و تست داخلی",
-    typeSupport: "remote",
-    status: "open",
-    date: "1403/08/17",
-  },
-];
-
 export default function TicketReport() {
-  const [tickets] = useState<Ticket[]>(MOCK_TICKETS);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  // Fetch tickets from API
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        setIsLoading(true);
+        const response = await ticketsApi.getTickets({
+          sortBy: "updated_at",
+          sortOrder: "desc",
+        });
+
+        // Map API tickets to Report interface
+        const mappedTickets: Ticket[] = response.data.map((ticket: ApiTicket) => ({
+          id: ticket.id,
+          name: ticket.customer || ticket.owner || "مشتری",
+          phone: "-", // Phone is not directly available in the API response
+          problem: ticket.subject,
+          solution: ticket.description || "-",
+          typeSupport: ticket.channel === "ایمیل" || ticket.channel === "وب" ? "remote" : "inPerson",
+          status: ticket.status === "بسته شده" ? "closed" : "open",
+          date: moment(ticket.created_at).locale("fa").format("jYYYY/jMM/jDD"),
+        }));
+
+        setTickets(mappedTickets);
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+        toast.error("خطا در دریافت تیکت‌ها");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTickets();
+  }, []);
 
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
@@ -182,11 +187,11 @@ export default function TicketReport() {
           />
           <div className="flex flex-col gap-2 text-xs text-slate-500 dark:text-slate-300">
             <span className="font-semibold">از تاریخ</span>
-            <DatePicker onChange={setFromDate} value={fromDate} />
+            <DatePicker onChange={(date) => setFromDate(date || "")} value={fromDate} />
           </div>
           <div className="flex flex-col gap-2 text-xs text-slate-500 dark:text-slate-300">
             <span className="font-semibold">تا تاریخ</span>
-            <DatePicker onChange={setToDate} value={toDate} />
+            <DatePicker onChange={(date) => setToDate(date || "")} value={toDate} />
           </div>
           <button
             onClick={() => {
@@ -231,7 +236,19 @@ export default function TicketReport() {
               </tr>
             </thead>
             <tbody>
-              {filteredTickets.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="rounded-3xl bg-white/80 py-8 text-center text-sm font-medium text-slate-400 dark:bg-slate-900/70 dark:text-slate-300"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+                      در حال بارگذاری...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredTickets.length > 0 ? (
                 filteredTickets.map((ticket) => (
                   <tr
                     key={ticket.id}

@@ -69,7 +69,7 @@ export function requireAdmin() {
 	const user = requireAuth();
 	if (user?.role !== "admin" && user?.role !== "support") {
 		throw redirect({
-			to: "/user-dashboard",
+			to: "/dashboard",
 		});
 	}
 	return user;
@@ -93,11 +93,6 @@ export function requireUser() {
  */
 export function redirectIfAuthenticated() {
 	if (isAuthenticated()) {
-		const user = getCurrentUser();
-		if (user?.role === "admin" || user?.role === "support") {
-			throw redirect({ to: "/dashboard" });
-		} else {
-			throw redirect({ to: "/user-dashboard" });
-		}
+		throw redirect({ to: "/dashboard" });
 	}
 }

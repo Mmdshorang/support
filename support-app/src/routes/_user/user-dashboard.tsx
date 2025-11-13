@@ -64,7 +64,7 @@ function UserDashboardPage() {
 				const response = await ticketsApi.getTickets({
 					sortBy: 'updated_at',
 					sortOrder: 'desc',
-				})
+				});
 
 				setTickets(response.data);
 			} catch (error) {
@@ -73,7 +73,7 @@ function UserDashboardPage() {
 			} finally {
 				setIsLoading(false);
 			}
-		}
+		};
 
 		fetchTickets();
 	}, []);
@@ -90,11 +90,11 @@ function UserDashboardPage() {
 					pendingTickets: statsData.by_status.pending,
 					answeredTickets: statsData.by_status.answered,
 					criticalTickets: statsData.by_priority.critical,
-				})
+				});
 			} catch (error) {
 				console.error('Error fetching stats:', error);
 			}
-		}
+		};
 
 		fetchStats();
 	}, []);
@@ -106,7 +106,7 @@ function UserDashboardPage() {
 			(ticket) =>
 				ticket.subject.toLowerCase().includes(query) ||
 				ticket.id.toString().includes(query),
-		)
+		);
 	}, [searchQuery, tickets]);
 
 	const STATS = [
@@ -134,7 +134,7 @@ function UserDashboardPage() {
 			icon: AlertTriangle,
 			color: "bg-rose-500/10 text-rose-600 dark:text-rose-200",
 		},
-	]
+	];
 
 	return (
 		<div className="space-y-6">
@@ -149,7 +149,7 @@ function UserDashboardPage() {
 					</p>
 				</div>
 				<Link
-					to="/user/new-ticket"
+					to="/new-ticket"
 					className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700 hover:shadow-lg dark:bg-indigo-500 dark:hover:bg-indigo-600"
 				>
 					<Plus className="h-5 w-5" />
@@ -182,7 +182,7 @@ function UserDashboardPage() {
 								</div>
 							</div>
 						</div>
-					)
+					);
 				})}
 			</section>
 
@@ -223,7 +223,7 @@ function UserDashboardPage() {
 							</p>
 							{!searchQuery && (
 								<Link
-									to="/user/new-ticket"
+									to="/new-ticket"
 									className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
 								>
 									<Plus className="h-4 w-4" />
@@ -235,7 +235,7 @@ function UserDashboardPage() {
 						filteredTickets.map((ticket) => (
 							<Link
 								key={ticket.id}
-								to="/user/tickets/$ticketId"
+								to="/tickets/$ticketId"
 								params={{ ticketId: ticket.id.toString() }}
 								className="block rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800/60 dark:bg-slate-900/80"
 							>
@@ -282,5 +282,5 @@ function UserDashboardPage() {
 				</div>
 			</section>
 		</div>
-	)
+	);
 }

@@ -20,12 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: '*',
+  credentials: false
+}))
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -60,7 +58,7 @@ app.use('/api/categories', categoryRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 2400;
 
 const server = app.listen(PORT, () => {
   console.log('═══════════════════════════════════════════');

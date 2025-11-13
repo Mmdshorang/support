@@ -1,4 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import moment from "jalali-moment";
+import { toast } from "react-toastify";
+import { ticketsApi } from "../../services/api/tickets";
+import type { Ticket as ApiTicket } from "../../services/api/tickets";
 
 interface Ticket {
 	id: number;
@@ -9,40 +13,9 @@ interface Ticket {
 	typeSupport: "inPerson" | "remote";
 	status: "open" | "closed";
 	updatedAt: string;
+	channel?: string;
+	apiStatus?: string;
 }
-
-const initialTickets: Ticket[] = [
-	{
-		id: 6589,
-		name: "علی رضایی",
-		phone: "09120000000",
-		problem: "عدم اتصال به سرور مرکزی",
-		solution: "ریست فایل میزبان و بررسی ارتباط VPN",
-		typeSupport: "remote",
-		status: "open",
-		updatedAt: "۱۴۰۳/۰۸/۲۰",
-	},
-	{
-		id: 6590,
-		name: "زهرا محمدی",
-		phone: "09350000000",
-		problem: "مشکل در ورود اپلیکیشن موبایل",
-		solution: "بازنشانی OTP و همگام‌سازی مجدد کاربر",
-		typeSupport: "inPerson",
-		status: "closed",
-		updatedAt: "۱۴۰۳/۰۸/۱۹",
-	},
-	{
-		id: 6591,
-		name: "شرکت فناوری سپهر",
-		phone: "02188990011",
-		problem: "کندی در گزارش‌گیری فروش",
-		solution: "بهینه‌سازی کوئری‌های SQL و ایندکسینگ",
-		typeSupport: "remote",
-		status: "open",
-		updatedAt: "۱۴۰۳/۰۸/۱۸",
-	},
-];
 
 const statusBadge: Record<Ticket["status"], string> = {
 	open: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200",
@@ -55,9 +28,46 @@ const typeBadge: Record<Ticket["typeSupport"], string> = {
 };
 
 export function StatusTicketPage() {
-	const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+	const [tickets, setTickets] = useState<Ticket[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
 	const [editingId, setEditingId] = useState<number | null>(null);
 	const [currentType, setCurrentType] = useState<Ticket["typeSupport"]>("remote");
+
+	// Fetch tickets from API
+	useEffect(() => {
+		const fetchTickets = async () => {
+			try {
+				setIsLoading(true);
+				const response = await ticketsApi.getTickets({
+					sortBy: "updated_at",
+					sortOrder: "desc",
+				});
+
+				// Map API tickets to StatusTicket interface
+				const mappedTickets: Ticket[] = response.data.map((ticket: ApiTicket) => ({
+					id: ticket.id,
+					name: ticket.customer || ticket.owner || "مشتری",
+					phone: "-",
+					problem: ticket.subject,
+					solution: ticket.description || "-",
+					typeSupport: ticket.channel === "ایمیل" || ticket.channel === "وب" ? "remote" : "inPerson",
+					status: ticket.status === "بسته شده" ? "closed" : "open",
+					updatedAt: moment(ticket.updated_at).locale("fa").format("jYYYY/jMM/jDD"),
+					channel: ticket.channel,
+					apiStatus: ticket.status,
+				}));
+
+				setTickets(mappedTickets);
+			} catch (error) {
+				console.error("Error fetching tickets:", error);
+				toast.error("خطا در دریافت تیکت‌ها");
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchTickets();
+	}, []);
 
 	const stats = useMemo(() => {
 		const open = tickets.filter((ticket) => ticket.status === "open").length;
@@ -66,8 +76,15 @@ export function StatusTicketPage() {
 		return { total: tickets.length, open, closed, inPerson };
 	}, [tickets]);
 
-	const handleDelete = (id: number) => {
-		setTickets((prev) => prev.filter((ticket) => ticket.id !== id));
+	const handleDelete = async (id: number) => {
+		try {
+			await ticketsApi.deleteTicket(id);
+			setTickets((prev) => prev.filter((ticket) => ticket.id !== id));
+			toast.success("تیکت با موفقیت حذف شد");
+		} catch (error) {
+			console.error("Error deleting ticket:", error);
+			toast.error("خطا در حذف تیکت");
+		}
 	};
 
 	const handleEdit = (ticket: Ticket) => {
@@ -75,11 +92,28 @@ export function StatusTicketPage() {
 		setCurrentType(ticket.typeSupport);
 	};
 
-	const handleSave = (id: number) => {
-		setTickets((prev) =>
-			prev.map((ticket) => (ticket.id === id ? { ...ticket, typeSupport: currentType } : ticket)),
-		);
-		setEditingId(null);
+	const handleSave = async (id: number) => {
+		try {
+			const ticket = tickets.find((t) => t.id === id);
+			if (!ticket) return;
+
+			// Update channel based on type
+			const newChannel = currentType === "inPerson" ? "تلفن" : "وب";
+
+			await ticketsApi.updateTicket(id, {
+				// Only update if channel needs to change
+			});
+
+			setTickets((prev) =>
+				prev.map((ticket) => (ticket.id === id ? { ...ticket, typeSupport: currentType, channel: newChannel } : ticket)),
+			);
+			setEditingId(null);
+			toast.success("تیکت با موفقیت به‌روزرسانی شد");
+		} catch (error) {
+			console.error("Error updating ticket:", error);
+			toast.error("خطا در به‌روزرسانی تیکت");
+			setEditingId(null);
+		}
 	};
 
 	return (
@@ -135,7 +169,19 @@ export function StatusTicketPage() {
 							</tr>
 						</thead>
 						<tbody>
-							{tickets.map((ticket) => (
+							{isLoading ? (
+								<tr>
+									<td
+										colSpan={9}
+										className="rounded-3xl bg-white/80 py-8 text-center text-sm font-medium text-slate-400 dark:bg-slate-900/70 dark:text-slate-300"
+									>
+										<div className="flex items-center justify-center gap-2">
+											<div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+											در حال بارگذاری...
+										</div>
+									</td>
+								</tr>
+							) : tickets.map((ticket) => (
 								<tr
 									key={ticket.id}
 									className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70"

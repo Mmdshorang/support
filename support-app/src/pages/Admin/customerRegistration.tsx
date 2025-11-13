@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
+import { useNavigate } from "@tanstack/react-router";
 import JalaliDatePicker from "../../components/common/DatePicker";
+import { customersApi } from "../../services/api/customers";
 
 interface FormState {
   customerName: string;
@@ -11,6 +14,7 @@ interface FormState {
 }
 
 export default function CustomerRegistrationForm() {
+  const navigate = useNavigate();
   const [form, setForm] = useState<FormState>({
     customerName: "",
     customerNumber: "",
@@ -19,14 +23,47 @@ export default function CustomerRegistrationForm() {
     contractTo: "",
     contractTier: "standard",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.table(form);
+
+    try {
+      setIsSubmitting(true);
+
+      await customersApi.createCustomer({
+        name: form.customerName.trim(),
+        email: `${form.companyName.toLowerCase().replace(/\s+/g, "")}@customer.com`,
+        phone: form.customerNumber,
+        company: form.companyName,
+      });
+
+      toast.success("مشتری با موفقیت ثبت شد");
+
+      // Reset form
+      setForm({
+        customerName: "",
+        customerNumber: "",
+        companyName: "",
+        contractFrom: "",
+        contractTo: "",
+        contractTier: "standard",
+      });
+
+      // Navigate back to dashboard or customers list after 1 second
+      setTimeout(() => {
+        navigate({ to: "/dashboard" });
+      }, 1000);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      toast.error("خطا در ثبت مشتری");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -153,9 +190,17 @@ export default function CustomerRegistrationForm() {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="inline-flex w-[50%] items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400 dark:focus:ring-emerald-500/70 dark:focus:ring-offset-slate-900"
+              disabled={isSubmitting}
+              className="inline-flex w-[50%] items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-emerald-500/70 dark:focus:ring-offset-slate-900"
             >
-              ثبت مشتری
+              {isSubmitting ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  در حال ثبت...
+                </>
+              ) : (
+                "ثبت مشتری"
+              )}
             </button>
           </div>
         </form>

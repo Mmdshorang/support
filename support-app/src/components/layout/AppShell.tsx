@@ -39,7 +39,6 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 	{ isTitle: true, label: "گزارشات" },
 	{ href: "/report", label: "تحلیل و گزارش", icon: BarChart3 },
 	{ href: "/submitTypesProblem", label: "دسته بندی مشکلات", icon: Files },
-	{ href: "/component", label: "کتابخانه کامپوننت", icon: LifeBuoy },
 	{ type: "divider", label: "divider2" },
 	{ isTitle: true, label: "پیکربندی" },
 	{ href: "/settings", label: "تنظیمات", icon: Settings },
@@ -47,12 +46,10 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 
 const USER_NAV_ITEMS: NavItem[] = [
 	{ isTitle: true, label: "منوی کاربری" },
-	{ href: "/user-dashboard", label: "داشبورد من", icon: LayoutDashboard },
+	{ href: "/dashboard", label: "داشبورد من", icon: LayoutDashboard },
 	{ href: "/user/new-ticket", label: "ثبت تیکت جدید", icon: Plus },
-	{ href: "/user/tickets", label: "تیکت‌های من", icon: Ticket },
 	{ type: "divider", label: "divider" },
 	{ isTitle: true, label: "راهنما" },
-	{ href: "/", label: "صفحه اصلی", icon: BookOpen },
 	{ href: "/help", label: "راهنمای استفاده", icon: LifeBuoy },
 ];
 
@@ -140,12 +137,9 @@ export default function AppShell({ children }: AppShellProps) {
 	}, [user]);
 
 	const filteredNavItems = useMemo(() => navItems.filter((item) => {
-		// Remove virtual settings link if route not implemented yet
-		if (item.href === "/settings") {
-			return false;
-		}
-		if (item.href === "/help") {
-			return false;
+		// Filter component library link - only for admins
+		if (item.href === "/component") {
+			return false; // Will be implemented later
 		}
 		return true;
 	}), [navItems]);

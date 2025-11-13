@@ -26,7 +26,7 @@ export const authApi = {
   // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-
+console.log(response)
     // Save token
     if (response.data.success && response.data.data.token) {
       localStorage.setItem('token', response.data.data.token);

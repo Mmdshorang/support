@@ -1,17 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
+import { categoriesApi } from "../services/api/categories";
+import type { Category } from "../services/api/categories";
 
 interface Issue {
-	id: number;
+	id: string;
 	type: string;
 	category: "زیرساخت" | "کاربری" | "گزارش" | "سایر";
 	activeTickets: number;
+	description?: string;
+	is_active: boolean;
 }
-
-const INITIAL_ISSUES: Issue[] = [
-	{ id: 1, type: "قطع سرویس وب", category: "زیرساخت", activeTickets: 4 },
-	{ id: 2, type: "عدم امکان ورود کاربران", category: "کاربری", activeTickets: 6 },
-	{ id: 3, type: "کندی گزارش فروش", category: "گزارش", activeTickets: 2 },
-];
 
 const CATEGORY_COLORS: Record<Issue["category"], string> = {
 	زیرساخت: "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200",
@@ -21,11 +20,49 @@ const CATEGORY_COLORS: Record<Issue["category"], string> = {
 };
 
 export default function IssuesList() {
-	const [issues, setIssues] = useState<Issue[]>(INITIAL_ISSUES);
-	const [editingId, setEditingId] = useState<number | null>(null);
+	const [issues, setIssues] = useState<Issue[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [editingId, setEditingId] = useState<string | null>(null);
 	const [draftValue, setDraftValue] = useState("");
 	const [newIssue, setNewIssue] = useState("");
 	const [newCategory, setNewCategory] = useState<Issue["category"]>("کاربری");
+
+	// Fetch categories from API
+	useEffect(() => {
+		const fetchCategories = async () => {
+			try {
+				setIsLoading(true);
+				const response = await categoriesApi.getCategories();
+
+				// Map API categories to Issue interface
+				const mappedIssues: Issue[] = response.data.map((cat: Category) => ({
+					id: cat.id,
+					type: cat.name,
+					category: mapCategoryType(cat.name),
+					activeTickets: 0, // این از API نمی‌آید، باید جداگانه محاسبه شود
+					description: cat.description,
+					is_active: cat.is_active,
+				}));
+
+				setIssues(mappedIssues);
+			} catch (error) {
+				console.error("Error fetching categories:", error);
+				toast.error("خطا در دریافت دسته‌بندی‌ها");
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchCategories();
+	}, []);
+
+	// Helper function to map category name to type
+	const mapCategoryType = (name: string): Issue["category"] => {
+		if (name.includes("زیرساخت") || name.includes("سرور") || name.includes("شبکه")) return "زیرساخت";
+		if (name.includes("کاربر") || name.includes("ورود") || name.includes("احراز")) return "کاربری";
+		if (name.includes("گزارش") || name.includes("داشبورد")) return "گزارش";
+		return "سایر";
+	};
 
 	const stats = useMemo(() => {
 		const total = issues.length;
@@ -44,29 +81,60 @@ export default function IssuesList() {
 		setDraftValue("");
 	};
 
-	const saveEditing = (id: number) => {
+	const saveEditing = async (id: string) => {
 		if (!draftValue.trim()) return;
-		setIssues((prev) => prev.map((issue) => (issue.id === id ? { ...issue, type: draftValue.trim() } : issue)));
-		cancelEditing();
+
+		try {
+			await categoriesApi.updateCategory(id, {
+				name: draftValue.trim(),
+			});
+
+			setIssues((prev) => prev.map((issue) => (issue.id === id ? { ...issue, type: draftValue.trim() } : issue)));
+			cancelEditing();
+			toast.success("دسته‌بندی با موفقیت به‌روزرسانی شد");
+		} catch (error) {
+			console.error("Error updating category:", error);
+			toast.error("خطا در به‌روزرسانی دسته‌بندی");
+		}
 	};
 
-	const removeIssue = (id: number) => {
-		setIssues((prev) => prev.filter((issue) => issue.id !== id));
+	const removeIssue = async (id: string) => {
+		try {
+			await categoriesApi.deleteCategory(id);
+			setIssues((prev) => prev.filter((issue) => issue.id !== id));
+			toast.success("دسته‌بندی با موفقیت حذف شد");
+		} catch (error) {
+			console.error("Error deleting category:", error);
+			toast.error("خطا در حذف دسته‌بندی");
+		}
 	};
 
-	const handleAddIssue = () => {
+	const handleAddIssue = async () => {
 		if (!newIssue.trim()) return;
-		const nextId = issues.length ? Math.max(...issues.map((issue) => issue.id)) + 1 : 1;
-		setIssues((prev) => [
-			...prev,
-			{
-				id: nextId,
-				type: newIssue.trim(),
+
+		try {
+			const response = await categoriesApi.createCategory({
+				name: newIssue.trim(),
+				description: `دسته‌بندی ${newCategory}`,
+				icon: "folder",
+			});
+
+			const newIssueData: Issue = {
+				id: response.data.id,
+				type: response.data.name,
 				category: newCategory,
 				activeTickets: 0,
-			},
-		]);
-		setNewIssue("");
+				description: response.data.description,
+				is_active: response.data.is_active,
+			};
+
+			setIssues((prev) => [...prev, newIssueData]);
+			setNewIssue("");
+			toast.success("دسته‌بندی جدید با موفقیت اضافه شد");
+		} catch (error) {
+			console.error("Error creating category:", error);
+			toast.error("خطا در ایجاد دسته‌بندی");
+		}
 	};
 
 	return (
@@ -149,7 +217,19 @@ export default function IssuesList() {
 							</tr>
 						</thead>
 						<tbody>
-							{issues.map((issue) => (
+							{isLoading ? (
+								<tr>
+									<td
+										colSpan={5}
+										className="rounded-3xl bg-white/80 py-8 text-center text-sm font-medium text-slate-400 dark:bg-slate-900/70 dark:text-slate-300"
+									>
+										<div className="flex items-center justify-center gap-2">
+											<div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+											در حال بارگذاری...
+										</div>
+									</td>
+								</tr>
+							) : issues.map((issue) => (
 								<tr
 									key={issue.id}
 									className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70"
