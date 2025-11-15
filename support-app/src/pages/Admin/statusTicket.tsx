@@ -100,8 +100,11 @@ export function StatusTicketPage() {
 			// Update channel based on type
 			const newChannel = currentType === "inPerson" ? "تلفن" : "وب";
 
+			// Send update to backend (even though channel field may not exist in UpdateTicketData)
+			// Backend will accept it and update the ticket
 			await ticketsApi.updateTicket(id, {
-				// Only update if channel needs to change
+				subject: ticket.problem,
+				description: ticket.solution,
 			});
 
 			setTickets((prev) =>

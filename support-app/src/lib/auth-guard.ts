@@ -2,9 +2,8 @@ import { redirect } from "@tanstack/react-router";
 
 export interface User {
 	id: string;
+	name: string;
 	email: string;
-	first_name: string;
-	last_name: string;
 	role: "admin" | "user" | "support";
 	avatar?: string;
 }
@@ -14,7 +13,7 @@ export interface User {
  */
 export function isAuthenticated(): boolean {
 	try {
-		const userStr = localStorage.getItem("user");
+		const userStr = localStorage.getItem("support-user");
 		const token = localStorage.getItem("token");
 		return !!userStr && !!token;
 	} catch {
@@ -27,7 +26,7 @@ export function isAuthenticated(): boolean {
  */
 export function getCurrentUser(): User | null {
 	try {
-		const userStr = localStorage.getItem("user");
+		const userStr = localStorage.getItem("support-user");
 		if (!userStr) return null;
 		return JSON.parse(userStr) as User;
 	} catch {

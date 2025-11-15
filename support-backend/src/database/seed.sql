@@ -2,10 +2,10 @@
 
 -- Insert default users (password: 'password123' - hashed with bcrypt)
 INSERT INTO users (id, name, email, password, role) VALUES
-    ('550e8400-e29b-41d4-a716-446655440001', 'مدیر سیستم', 'admin@hesaban.com', '$2a$10$rT8O4zGNZE5qYLZKf7E5XeK4qV5qZUqYqQpLZE5qYLZKf7E5XeK4q', 'admin'),
-    ('550e8400-e29b-41d4-a716-446655440002', 'مهدی صادقی', 'mehdi@hesaban.com', '$2a$10$rT8O4zGNZE5qYLZKf7E5XeK4qV5qZUqYqQpLZE5qYLZKf7E5XeK4q', 'support'),
-    ('550e8400-e29b-41d4-a716-446655440003', 'علی احمدی', 'ali@example.com', '$2a$10$rT8O4zGNZE5qYLZKf7E5XeK4qV5qZUqYqQpLZE5qYLZKf7E5XeK4q', 'user'),
-    ('550e8400-e29b-41d4-a716-446655440004', 'زهرا محمدی', 'zahra@example.com', '$2a$10$rT8O4zGNZE5qYLZKf7E5XeK4qV5qZUqYqQpLZE5qYLZKf7E5XeK4q', 'user')
+    ('550e8400-e29b-41d4-a716-446655440001', 'مدیر سیستم', 'admin@hesaban.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'admin'),
+    ('550e8400-e29b-41d4-a716-446655440002', 'مهدی صادقی', 'mehdi@hesaban.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'support'),
+    ('550e8400-e29b-41d4-a716-446655440003', 'علی احمدی', 'ali@example.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'user'),
+    ('550e8400-e29b-41d4-a716-446655440004', 'زهرا محمدی', 'zahra@example.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'user')
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert ticket categories

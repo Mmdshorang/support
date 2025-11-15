@@ -34,7 +34,8 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 	{ href: "/", label: "خانه", icon: BookOpen },
 	{ href: "/submitTicket", label: "ثبت تیکت", icon: MessageSquare },
 	{ href: "/statusTicket", label: "وضعیت تیکت‌ها", icon: CalendarClock },
-	{ href: "/customerRegistration", label: "ثبت مشتری", icon: UsersRound },
+	{ href: "/customers", label: "لیست مشتریان", icon: UsersRound },
+	{ href: "/customerRegistration", label: "ثبت مشتری", icon: Plus },
 	{ type: "divider", label: "divider" },
 	{ isTitle: true, label: "گزارشات" },
 	{ href: "/report", label: "تحلیل و گزارش", icon: BarChart3 },
@@ -96,6 +97,19 @@ const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
 		pattern: /^\/statusTicket/,
 		meta: {
 			title: "وضعیت تیکت‌ها",
+		},
+	},
+	{
+		pattern: /^\/customers/,
+		meta: {
+			title: "لیست مشتریان",
+			subtitle: "مدیریت اطلاعات مشتریان و تیکت‌های آنها",
+		},
+	},
+	{
+		pattern: /^\/customerRegistration/,
+		meta: {
+			title: "ثبت مشتری جدید",
 		},
 	},
 	{

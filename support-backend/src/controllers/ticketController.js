@@ -100,11 +100,13 @@ export const getTickets = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      count: result.rows.length,
-      total: totalCount,
-      pages: Math.ceil(totalCount / limit),
-      currentPage: parseInt(page),
       data: result.rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
     });
   } catch (error) {
     next(error);
@@ -362,9 +364,25 @@ export const getTicketStats = async (req, res, next) => {
       values
     );
 
+    const stats = result.rows[0];
+
     res.status(200).json({
       success: true,
-      data: result.rows[0],
+      data: {
+        total: parseInt(stats.total),
+        by_status: {
+          pending: parseInt(stats.pending),
+          in_progress: parseInt(stats.in_progress),
+          answered: parseInt(stats.answered),
+          closed: parseInt(stats.closed),
+        },
+        by_priority: {
+          low: parseInt(stats.low),
+          medium: parseInt(stats.medium),
+          high: parseInt(stats.high),
+          critical: parseInt(stats.critical),
+        },
+      },
     });
   } catch (error) {
     next(error);

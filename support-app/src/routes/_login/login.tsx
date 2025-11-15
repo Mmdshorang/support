@@ -43,16 +43,16 @@ function LoginPage() {
         // Show success message
         toast.success(response.message || "ورود با موفقیت انجام شد");
 
-        // Redirect to unified dashboard
+        // Small delay to ensure state is updated
         setTimeout(() => {
-          navigate({ to: "/dashboard" });
-        }, 500);
+          // Force page reload to ensure all state is fresh
+          window.location.href = "/dashboard";
+        }, 300);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      const errorMessage = "ارور";
+      const errorMessage = error?.response?.data?.message || "خطا در ورود به سیستم";
       toast.error(errorMessage);
-    } finally {
       setIsLoading(false);
     }
   };

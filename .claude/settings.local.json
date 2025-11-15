@@ -4,7 +4,13 @@
       "Bash(mkdir:*)",
       "Bash(npm run build:*)",
       "Bash(netstat -ano)",
-      "Bash(findstr :5000)"
+      "Bash(findstr :5000)",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(npm run dev:*)",
+      "Bash(dir /B /S)",
+      "Bash(curl:*)",
+      "Bash(findstr:*)",
+      "Bash(src/server.js)"
     ],
     "deny": [],
     "ask": []
