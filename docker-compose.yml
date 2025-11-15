@@ -1,0 +1,18 @@
+services:
+  support-app:
+    build: ./support-app
+    container_name: support-app
+    ports:
+      - "3000:80"
+    depends_on:
+      - support-backend
+    restart: unless-stopped
+
+  support-backend:
+    build: ./support-backend
+    container_name: support-backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
