@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -25,11 +24,6 @@ import { Route as AdminProblemsSubmitTypesProblemRouteImport } from './routes/_a
 import { Route as AdminCustomerCustomersRouteImport } from './routes/_admin/_customer/customers'
 import { Route as AdminCustomerCustomerRegistrationRouteImport } from './routes/_admin/_customer/customerRegistration'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
@@ -109,7 +103,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof SettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
@@ -126,7 +119,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof SettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
@@ -144,7 +136,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof SettingsRoute
   '/_login/login': typeof LoginLoginRoute
   '/_login/logout': typeof LoginLogoutRoute
   '/_user/new-ticket': typeof UserNewTicketRoute
@@ -163,7 +154,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
-    | '/settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
@@ -180,7 +170,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
-    | '/settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
@@ -197,7 +186,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
-    | '/settings'
     | '/_login/login'
     | '/_login/logout'
     | '/_user/new-ticket'
@@ -215,7 +203,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   HelpRoute: typeof HelpRoute
-  SettingsRoute: typeof SettingsRoute
   LoginLoginRoute: typeof LoginLoginRoute
   LoginLogoutRoute: typeof LoginLogoutRoute
   UserNewTicketRoute: typeof UserNewTicketRoute
@@ -231,13 +218,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/help': {
       id: '/help'
       path: '/help'
@@ -343,7 +323,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   HelpRoute: HelpRoute,
-  SettingsRoute: SettingsRoute,
   LoginLoginRoute: LoginLoginRoute,
   LoginLogoutRoute: LoginLogoutRoute,
   UserNewTicketRoute: UserNewTicketRoute,

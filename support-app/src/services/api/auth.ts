@@ -22,6 +22,17 @@ export interface AuthResponse {
   };
 }
 
+export interface UpdateDetailsData {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface UpdatePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export const authApi = {
   // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -50,6 +61,24 @@ console.log(response)
   // Get current user
   getMe: async () => {
     const response = await apiClient.get<{ success: boolean; data: User }>('/auth/me');
+    return response.data;
+  },
+
+  // Update user details
+  updateDetails: async (data: UpdateDetailsData) => {
+    const response = await apiClient.put<{ success: boolean; message: string; data: User }>('/auth/updatedetails', data);
+    return response.data;
+  },
+
+  // Update password
+  updatePassword: async (data: UpdatePasswordData) => {
+    const response = await apiClient.put<{ success: boolean; message: string; data: { token: string } }>('/auth/updatepassword', data);
+
+    // Update token if password changed successfully
+    if (response.data.success && response.data.data.token) {
+      localStorage.setItem('token', response.data.data.token);
+    }
+
     return response.data;
   },
 

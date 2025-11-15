@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell, Menu, Search, UserCircle2 } from "lucide-react";
+import { useAtomValue } from "jotai";
+import { userAtom } from "../../stores/auth";
 
 interface QuickLink {
 	label: string;
@@ -28,6 +30,7 @@ export default function TopBar({
 	quickLinks,
 }: TopBarProps) {
 	const links = useMemo(() => quickLinks ?? DEFAULT_QUICK_LINKS, [quickLinks]);
+	const user = useAtomValue(userAtom);
 
 	return (
 		<header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-sm dark:border-slate-800/70 dark:bg-slate-900/80">
@@ -79,10 +82,13 @@ export default function TopBar({
 						</span>
 					</button>
 
-					<button className="flex items-center gap-2 rounded-xl border border-transparent bg-slate-100/70 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-white hover:text-indigo-600 dark:bg-slate-800/70 dark:text-slate-100 dark:hover:border-indigo-500/40 dark:hover:bg-slate-800">
+					<Link
+						to="/settings"
+						className="flex items-center gap-2 rounded-xl border border-transparent bg-slate-100/70 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-white hover:text-indigo-600 dark:bg-slate-800/70 dark:text-slate-100 dark:hover:border-indigo-500/40 dark:hover:bg-slate-800"
+					>
 						<UserCircle2 className="h-6 w-6 text-indigo-500" />
-						<span className="hidden sm:block">مهدی داوری</span>
-					</button>
+						<span className="hidden sm:block">{user?.name || "کاربر"}</span>
+					</Link>
 				</div>
 			</div>
 			<div className="px-4 pb-3 lg:hidden">
