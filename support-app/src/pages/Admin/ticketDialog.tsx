@@ -5,7 +5,12 @@ type Ticket = {
   name: string;
   phone: string;
   category: string;
+  problem: string;
   description: string;
+  solution: string;
+  statusText: string;
+  createdAt: string;
+  supportLabel: string;
 };
 
 type TicketDialogProps = {
@@ -34,26 +39,47 @@ export default function TicketDialog({
         </h2>
 
         {/* Content */}
-        <div className="space-y-3 mb-4">
-          <p className="text-gray-700 dark:text-gray-200">
-            <span className="font-semibold">👤 نام:</span> {ticket.name}
-          </p>
-
-          <p className="text-gray-700 dark:text-gray-200">
-            <span className="font-semibold">📞 شماره تماس:</span> {ticket.phone}
-          </p>
-
-          <p className="text-gray-700 dark:text-gray-200">
-            <span className="font-semibold">📂 دسته‌بندی مشکل:</span>{" "}
-            {ticket.category}
-          </p>
+        <div className="space-y-4 mb-4 text-sm text-gray-700 dark:text-gray-200">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <p>
+              <span className="font-semibold">👤 نام مشتری:</span> {ticket.name}
+            </p>
+            <p dir="ltr">
+              <span className="font-semibold">📞 شماره تماس:</span>{" "}
+              {ticket.phone}
+            </p>
+            <p>
+              <span className="font-semibold">📂 دسته‌بندی مشکل:</span>{" "}
+              {ticket.category}
+            </p>
+            <p>
+              <span className="font-semibold">📅 تاریخ ثبت:</span>{" "}
+              {ticket.createdAt}
+            </p>
+            <p>
+              <span className="font-semibold">🎯 وضعیت:</span>{" "}
+              {ticket.statusText}
+            </p>
+            <p>
+              <span className="font-semibold">🛠 نوع پشتیبانی:</span>{" "}
+              {ticket.supportLabel}
+            </p>
+          </div>
 
           <div>
-            <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              📝 توضیحات مشکل:
-            </p>
-            <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-gray-800 dark:text-gray-100">
-              {ticket.description}
+            <p className="font-semibold mb-1">📝 موضوع/شرح مشکل:</p>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700">
+              <p className="font-semibold mb-1">{ticket.problem}</p>
+              <p className="text-gray-600 dark:text-gray-200">
+                {ticket.description}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p className="font-semibold mb-1">✅ راه‌حل ثبت‌شده:</p>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-900 dark:border-emerald-600/60 dark:bg-emerald-900/40 dark:text-emerald-100">
+              {ticket.solution}
             </div>
           </div>
 

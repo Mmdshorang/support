@@ -1,5 +1,5 @@
-import apiClient from './client';
-import type { User } from '../../stores/auth';
+import apiClient from "./client";
+import type { User } from "../../stores/auth";
 
 export interface LoginCredentials {
   username: string;
@@ -11,7 +11,7 @@ export interface RegisterData {
   username: string;
   password: string;
   email?: string;
-  role?: 'user' | 'admin' | 'support';
+  role?: "user" | "admin" | "support";
 }
 
 export interface AuthResponse {
@@ -37,11 +37,13 @@ export interface UpdatePasswordData {
 export const authApi = {
   // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-console.log(response)
+    const response = await apiClient.post<AuthResponse>(
+      "/auth/login",
+      credentials
+    );
     // Save token
     if (response.data.success && response.data.data.token) {
-      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem("token", response.data.data.token);
     }
 
     return response.data;
@@ -49,11 +51,11 @@ console.log(response)
 
   // Register
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/auth/register', data);
+    const response = await apiClient.post<AuthResponse>("/auth/register", data);
 
     // Save token
     if (response.data.success && response.data.data.token) {
-      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem("token", response.data.data.token);
     }
 
     return response.data;
@@ -61,23 +63,33 @@ console.log(response)
 
   // Get current user
   getMe: async () => {
-    const response = await apiClient.get<{ success: boolean; data: User }>('/auth/me');
+    const response = await apiClient.get<{ success: boolean; data: User }>(
+      "/auth/me"
+    );
     return response.data;
   },
 
   // Update user details
   updateDetails: async (data: UpdateDetailsData) => {
-    const response = await apiClient.put<{ success: boolean; message: string; data: User }>('/auth/updatedetails', data);
+    const response = await apiClient.put<{
+      success: boolean;
+      message: string;
+      data: User;
+    }>("/auth/updatedetails", data);
     return response.data;
   },
 
   // Update password
   updatePassword: async (data: UpdatePasswordData) => {
-    const response = await apiClient.put<{ success: boolean; message: string; data: { token: string } }>('/auth/updatepassword', data);
+    const response = await apiClient.put<{
+      success: boolean;
+      message: string;
+      data: { token: string };
+    }>("/auth/updatepassword", data);
 
     // Update token if password changed successfully
     if (response.data.success && response.data.data.token) {
-      localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem("token", response.data.data.token);
     }
 
     return response.data;
@@ -85,7 +97,7 @@ console.log(response)
 
   // Logout
   logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('support-user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("support-user");
   },
 };

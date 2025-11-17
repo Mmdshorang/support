@@ -1,11 +1,11 @@
 -- Seed data for Support System
 
 -- Insert default users (password: 'password123' - hashed with bcrypt)
-INSERT INTO users (id, name, email, password, role) VALUES
-    ('550e8400-e29b-41d4-a716-446655440001', 'مدیر سیستم', 'admin@hesaban.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'admin'),
-    ('550e8400-e29b-41d4-a716-446655440002', 'مهدی صادقی', 'mehdi@hesaban.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'support'),
-    ('550e8400-e29b-41d4-a716-446655440003', 'علی احمدی', 'ali@example.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'user'),
-    ('550e8400-e29b-41d4-a716-446655440004', 'زهرا محمدی', 'zahra@example.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'user')
+INSERT INTO users (id, name, username, email, password, role) VALUES
+    ('550e8400-e29b-41d4-a716-446655440001', 'مدیر سیستم', 'admin', 'admin@hesaban.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'admin'),
+    ('550e8400-e29b-41d4-a716-446655440002', 'مهدی صادقی', 'support', 'mehdi@hesaban.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'support'),
+    ('550e8400-e29b-41d4-a716-446655440003', 'علی احمدی', 'ali', 'ali@example.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'user'),
+    ('550e8400-e29b-41d4-a716-446655440004', 'زهرا محمدی', 'zahra', 'zahra@example.com', '$2a$10$qoo3lSiVEVFgrYgqdoGw7OhaTG/dsKPLDSEn4FvIJLKJAj3WTAhsK', 'user')
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert ticket categories
@@ -19,11 +19,15 @@ INSERT INTO ticket_categories (id, name, description, color) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert customers
-INSERT INTO customers (id, name, email, phone, company, city, country, created_by) VALUES
-    ('750e8400-e29b-41d4-a716-446655440001', 'شرکت فناوری سپهر', 'info@sepehr.com', '021-12345678', 'شرکت فناوری سپهر', 'تهران', 'ایران', '550e8400-e29b-41d4-a716-446655440001'),
-    ('750e8400-e29b-41d4-a716-446655440002', 'بانک توسعه شرق', 'support@toseeshargh.com', '051-87654321', 'بانک توسعه شرق', 'مشهد', 'ایران', '550e8400-e29b-41d4-a716-446655440001'),
-    ('750e8400-e29b-41d4-a716-446655440003', 'گروه صنعتی کیان', 'contact@kian.com', '031-11223344', 'گروه صنعتی کیان', 'اصفهان', 'ایران', '550e8400-e29b-41d4-a716-446655440001')
+INSERT INTO customers (id, name, email, phone, company, city, country, contract_start_date, contract_end_date, contract_tier, created_by) VALUES
+    ('750e8400-e29b-41d4-a716-446655440001', 'شرکت فناوری سپهر', 'info@sepehr.com', '02112345678', 'شرکت فناوری سپهر', 'تهران', 'ایران', '2024-01-01', '2025-01-01', 'premium', '550e8400-e29b-41d4-a716-446655440001'),
+    ('750e8400-e29b-41d4-a716-446655440002', 'بانک توسعه شرق', 'support@toseeshargh.com', '05187654321', 'بانک توسعه شرق', 'مشهد', 'ایران', '2023-06-01', '2024-06-01', 'standard', '550e8400-e29b-41d4-a716-446655440001'),
+    ('750e8400-e29b-41d4-a716-446655440003', 'گروه صنعتی کیان', 'contact@kian.com', '03111223344', 'گروه صنعتی کیان', 'اصفهان', 'ایران', '2023-10-15', '2024-10-15', 'basic', '550e8400-e29b-41d4-a716-446655440001')
 ON CONFLICT (email) DO NOTHING;
+
+-- Map sample users to customers
+UPDATE users SET customer_id = '750e8400-e29b-41d4-a716-446655440001' WHERE username = 'ali';
+UPDATE users SET customer_id = '750e8400-e29b-41d4-a716-446655440002' WHERE username = 'zahra';
 
 -- Insert problem types
 INSERT INTO problem_types (id, name, description) VALUES

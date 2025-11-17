@@ -1,6 +1,10 @@
-import apiClient from './client';
+import apiClient from "./client";
 
-export type TicketStatus = "در انتظار" | "در حال پیگیری" | "پاسخ داده شده" | "بسته شده";
+export type TicketStatus =
+  | "در انتظار"
+  | "در حال پیگیری"
+  | "پاسخ داده شده"
+  | "بسته شده";
 
 export interface Ticket {
   id: number;
@@ -16,11 +20,17 @@ export interface Ticket {
   resolved_at?: string;
   closed_at?: string;
   customer?: string;
+  customer_name?: string;
+  customer_phone?: string;
   owner?: string;
+  owner_phone?: string;
+  user_name?: string;
+  user_phone?: string;
   unread_count?: number;
   last_message?: string;
-  typeSupport: "inPerson" | "remote";
-  solution: string;
+  channel?: string;
+  typeSupport?: "inPerson" | "remote";
+  solution?: string;
 }
 
 export interface TicketMessage {
@@ -86,7 +96,7 @@ export interface TicketFilters {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface PaginatedResponse<T> {
@@ -108,12 +118,14 @@ export interface ApiResponse<T> {
 
 export const ticketsApi = {
   // Get all tickets (with filters)
-  getTickets: async (filters?: TicketFilters): Promise<PaginatedResponse<Ticket>> => {
+  getTickets: async (
+    filters?: TicketFilters
+  ): Promise<PaginatedResponse<Ticket>> => {
     const params = new URLSearchParams();
 
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           params.append(key, value.toString());
         }
       });
@@ -132,31 +144,48 @@ export const ticketsApi = {
   },
 
   // Create ticket
-  createTicket: async (data: CreateTicketData): Promise<ApiResponse<Ticket>> => {
-    const response = await apiClient.post<ApiResponse<Ticket>>('/tickets', data);
+  createTicket: async (
+    data: CreateTicketData
+  ): Promise<ApiResponse<Ticket>> => {
+    const response = await apiClient.post<ApiResponse<Ticket>>(
+      "/tickets",
+      data
+    );
     return response.data;
   },
 
   // Update ticket
-  updateTicket: async (id: number, data: UpdateTicketData): Promise<ApiResponse<Ticket>> => {
-    const response = await apiClient.put<ApiResponse<Ticket>>(`/tickets/${id}`, data);
+  updateTicket: async (
+    id: number,
+    data: UpdateTicketData
+  ): Promise<ApiResponse<Ticket>> => {
+    const response = await apiClient.put<ApiResponse<Ticket>>(
+      `/tickets/${id}`,
+      data
+    );
     return response.data;
   },
 
   // Delete ticket (admin only)
   deleteTicket: async (id: number): Promise<ApiResponse<void>> => {
-    const response = await apiClient.delete<ApiResponse<void>>(`/tickets/${id}`);
+    const response = await apiClient.delete<ApiResponse<void>>(
+      `/tickets/${id}`
+    );
     return response.data;
   },
 
   // Get ticket statistics
   getStats: async (): Promise<ApiResponse<TicketStats>> => {
-    const response = await apiClient.get<ApiResponse<TicketStats>>('/tickets/stats/overview');
+    const response = await apiClient.get<ApiResponse<TicketStats>>(
+      "/tickets/stats/overview"
+    );
     return response.data;
   },
 
   // Get ticket messages
-  getMessages: async (ticketId: number): Promise<ApiResponse<TicketMessage[]>> => {
+  getMessages: async (
+    ticketId: number
+  ): Promise<ApiResponse<TicketMessage[]>> => {
     const response = await apiClient.get<ApiResponse<TicketMessage[]>>(
       `/tickets/${ticketId}/messages`
     );
@@ -177,7 +206,10 @@ export const ticketsApi = {
   },
 
   // Delete message (admin only)
-  deleteMessage: async (ticketId: number, messageId: string): Promise<ApiResponse<void>> => {
+  deleteMessage: async (
+    ticketId: number,
+    messageId: string
+  ): Promise<ApiResponse<void>> => {
     const response = await apiClient.delete<ApiResponse<void>>(
       `/tickets/${ticketId}/messages/${messageId}`
     );

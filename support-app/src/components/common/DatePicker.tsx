@@ -198,6 +198,7 @@ export default function JalaliDatePicker({
 
         {input && (
           <button
+            type="button"
             onClick={() => {
               setInput("");
               onChange?.(null);
@@ -228,6 +229,7 @@ export default function JalaliDatePicker({
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <button
+              type="button"
               onClick={() => setCalendarMonth((c) => c.clone().subtract(1, "jMonth"))}
               className="p-1 rounded-full hover:bg-blue-600 "
               aria-label="ماه قبلی"
@@ -240,6 +242,7 @@ export default function JalaliDatePicker({
             </div>
 
             <button
+              type="button"
               onClick={() => setCalendarMonth((c) => c.clone().add(1, "jMonth"))}
               className="p-1 rounded-full hover:bg-blue-600"
               aria-label="ماه بعدی"
@@ -269,6 +272,7 @@ export default function JalaliDatePicker({
 
               return (
                 <button
+                  type="button"
                   key={idx}
                  
                   onClick={() => d && selectDate(d)}
@@ -289,6 +293,7 @@ export default function JalaliDatePicker({
           {/* Today Button */}
           <div className="mt-3 text-center">
             <button
+              type="button"
               onClick={() => {
                 const m = today.clone();
                 const formatted = formatJalali(m, format)!;

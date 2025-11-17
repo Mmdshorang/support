@@ -1,20 +1,20 @@
-import jwt from 'jsonwebtoken';
-import { query } from '../config/database.js';
+import jwt from "jsonwebtoken";
+import { query } from "../config/database.js";
 
 export const protect = async (req, res, next) => {
   let token;
 
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(' ')[1];
+    token = req.headers.authorization.split(" ")[1];
   }
 
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: 'دسترسی غیرمجاز - توکن یافت نشد',
+      message: "دسترسی غیرمجاز - توکن یافت نشد",
     });
   }
 
@@ -24,23 +24,50 @@ export const protect = async (req, res, next) => {
 
     // Get user from database
     const result = await query(
-      'SELECT id, name, email, role, avatar FROM users WHERE id = $1 AND is_active = true',
+      `SELECT
+        u.id,
+        u.name,
+        u.username,
+        u.email,
+        u.role,
+        u.avatar,
+        u.phone,
+        u.customer_id,
+        u.is_active,
+        c.contract_end_date
+       FROM users u
+       LEFT JOIN customers c ON u.customer_id = c.id
+       WHERE u.id = $1 AND u.is_active = true`,
       [decoded.id]
     );
 
     if (result.rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: 'کاربر یافت نشد',
+        message: "کاربر یافت نشد",
       });
     }
 
-    req.user = result.rows[0];
+    const authUser = result.rows[0];
+
+    if (
+      authUser.role === "user" &&
+      authUser.contract_end_date &&
+      new Date(authUser.contract_end_date) < new Date()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "قرارداد شما منقضی شده است. برای تمدید با پشتیبانی تماس بگیرید.",
+      });
+    }
+
+    req.user = authUser;
     next();
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: 'دسترسی غیرمجاز - توکن نامعتبر است',
+      message: "دسترسی غیرمجاز - توکن نامعتبر است",
     });
   }
 };

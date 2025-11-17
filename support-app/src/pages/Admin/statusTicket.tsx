@@ -11,10 +11,13 @@ interface Ticket {
   phone: string;
   problem: string;
   description: string;
+  category: string;
   typeSupport: "inPerson" | "remote";
   status: "open" | "closed";
-  updatedAt: string;
-  apiStatus?: string;
+  statusText: string;
+  createdAt: string;
+  solution: string;
+  supportLabel: string;
 }
 
 const statusBadge: Record<Ticket["status"], string> = {
@@ -32,16 +35,36 @@ const typeBadge: Record<Ticket["typeSupport"], string> = {
 export function StatusTicketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [currentType, setCurrentType] =
-    useState<Ticket["typeSupport"]>("remote");
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
-  const handleRowClick = (ticket : Ticket) => {
+  const handleRowClick = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setOpenDialog(true);
   };
+
+  const formatPhoneNumber = (value?: string | null) => {
+    if (!value) return "نامشخص";
+    const digits = value.replace(/[^\d+]/g, "");
+    if (!digits) return "نامشخص";
+    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  };
+
+  const determineSupportType = (channel?: string | null): Ticket["typeSupport"] => {
+    if (!channel) return "remote";
+    const normalized = channel.trim();
+    if (
+      ["حضوری", "inPerson", "تلفن", "مراجعه حضوری"].some((label) =>
+        normalized.includes(label)
+      )
+    ) {
+      return "inPerson";
+    }
+    return "remote";
+  };
+
+  const supportTypeLabel = (type: Ticket["typeSupport"]) =>
+    type === "inPerson" ? "حضوری" : "غیرحضوری";
 
   // Fetch tickets from API
   useEffect(() => {
@@ -54,20 +77,33 @@ export function StatusTicketPage() {
         });
 
         // Map API tickets to StatusTicket interface
-        const mappedTickets: Ticket[] = response.data.map(
-          (ticket: ApiTicket) => ({
+        const mappedTickets: Ticket[] = response.data.map((ticket: ApiTicket) => {
+          const typeSupport = determineSupportType(ticket.channel);
+          const statusText = ticket.status || "نامشخص";
+          return {
             id: ticket.id,
-            name: ticket.customer || ticket.owner || "مشتری",
-            phone: "-",
-            problem: ticket.subject,
-            description: ticket.description || "-",
+            name:
+              ticket.customer ||
+              ticket.customer_name ||
+              ticket.owner ||
+              ticket.user_name ||
+              "نامشخص",
+            phone: formatPhoneNumber(
+              ticket.customer_phone || ticket.owner_phone || ticket.user_phone
+            ),
+            problem: ticket.subject || "نامشخص",
+            description: ticket.description || "توضیحی ثبت نشده است",
+            category: ticket.category_name || "نامشخص",
+            typeSupport,
             status: ticket.status === "بسته شده" ? "closed" : "open",
-            updatedAt: moment(ticket.updated_at)
+            statusText,
+            createdAt: moment(ticket.created_at || ticket.updated_at)
               .locale("fa")
-              .format("jYYYY/jMM/jDD"),
-            apiStatus: ticket.status,
-          })
-        );
+              .format("jYYYY/jMM/jDD HH:mm"),
+            solution: ticket.solution || "راه‌حلی ثبت نشده است",
+            supportLabel: supportTypeLabel(typeSupport),
+          };
+        });
 
         setTickets(mappedTickets);
       } catch (error) {
@@ -98,42 +134,6 @@ export function StatusTicketPage() {
     } catch (error) {
       console.error("Error deleting ticket:", error);
       toast.error("خطا در حذف تیکت");
-    }
-  };
-
-  const handleEdit = (ticket: Ticket) => {
-    setEditingId(ticket.id);
-    setCurrentType(ticket.typeSupport);
-  };
-
-  const handleSave = async (id: number) => {
-    try {
-      const ticket = tickets.find((t) => t.id === id);
-      if (!ticket) return;
-
-      // Update channel based on type
-      const newChannel = currentType === "inPerson" ? "تلفن" : "وب";
-
-      // Send update to backend (even though channel field may not exist in UpdateTicketData)
-      // Backend will accept it and update the ticket
-      await ticketsApi.updateTicket(id, {
-        subject: ticket.problem,
-        description: ticket.description,
-      });
-
-      setTickets((prev) =>
-        prev.map((ticket) =>
-          ticket.id === id
-            ? { ...ticket, typeSupport: currentType, channel: newChannel }
-            : ticket
-        )
-      );
-      setEditingId(null);
-      toast.success("تیکت با موفقیت به‌روزرسانی شد");
-    } catch (error) {
-      console.error("Error updating ticket:", error);
-      toast.error("خطا در به‌روزرسانی تیکت");
-      setEditingId(null);
     }
   };
 
@@ -211,19 +211,19 @@ export function StatusTicketPage() {
                   شماره تماس
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
-                  دسته‌بندی مشکل
-                </th>
-                <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
-                  شرح مشکل
+                  مشکل
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
                   نوع پشتیبانی
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
+                  راه‌حل
+                </th>
+                <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
                   وضعیت
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
-                  آخرین بروزرسانی
+                  تاریخ ثبت
                 </th>
                 <th className="rounded-l-xl bg-slate-100/70 px-3 py-2 text-center dark:bg-slate-800/70">
                   عملیات
@@ -247,7 +247,7 @@ export function StatusTicketPage() {
                 tickets.map((ticket) => (
                   <tr
                     key={ticket.id}
-                    onClick={()=>handleRowClick(ticket)}
+                    onClick={() => handleRowClick(ticket)}
                     className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70"
                   >
                     <td className="rounded-r-3xl px-3 py-4 font-semibold text-slate-500 dark:text-slate-300">
@@ -266,85 +266,55 @@ export function StatusTicketPage() {
                       </p>
                     </td>
                     <td className="px-3 py-4 text-xs leading-5 text-slate-600 dark:text-slate-200">
-                      {ticket.problem}
-                    </td>
-                    <td className="px-3 py-4 text-xs leading-5 text-slate-500 dark:text-slate-300">
-                      {ticket.description}
-                    </td>
-                    <td className="px-3 py-4">
-                      {editingId === ticket.id ? (
-                        <select
-                          value={currentType}
-                          onChange={(event) =>
-                            setCurrentType(
-                              event.target.value as Ticket["typeSupport"]
-                            )
-                          }
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
-                        >
-                          <option value="remote">غیرحضوری</option>
-                          <option value="inPerson">حضوری</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${
-                            typeBadge[ticket.typeSupport]
-                          }`}
-                        >
-                          {ticket.typeSupport === "inPerson"
-                            ? "حضوری"
-                            : "غیرحضوری"}
-                        </span>
-                      )}
+                      <p className="font-semibold text-slate-800 dark:text-white">
+                        {ticket.problem}
+                      </p>
+                      <p className="mt-1 text-slate-500 dark:text-slate-300 line-clamp-2">
+                        {ticket.description}
+                      </p>
+                      <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+                        {ticket.category}
+                      </span>
                     </td>
                     <td className="px-3 py-4">
-                      {editingId == ticket.id ? (
-                        <select
-                          value={currentType}
-                          onChange={(event) =>
-                            setCurrentType(
-                              event.target.value as Ticket["typeSupport"]
-                            )
-                          }
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
-                        >
-                          <option value="remote">در حال پیگیری</option>
-                          <option value="inPerson">بسته شده</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${
-                            statusBadge[ticket.status]
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${typeBadge[ticket.typeSupport]
                           }`}
-                        >
-                          {ticket.status === "open"
-                            ? "در حال پیگیری"
-                            : "بسته شده"}
-                        </span>
-                      )}
+                      >
+                        {supportTypeLabel(ticket.typeSupport)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-4 text-xs text-slate-600 dark:text-slate-200">
+                      <p className="line-clamp-3">{ticket.solution}</p>
+                    </td>
+                    <td className="px-3 py-4">
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${statusBadge[ticket.status]
+                          }`}
+                      >
+                        {ticket.statusText}
+                      </span>
                     </td>
                     <td className="px-3 py-4 text-xs font-medium text-slate-500 dark:text-slate-300">
-                      {ticket.updatedAt}
+                      {ticket.createdAt}
                     </td>
                     <td className="rounded-l-3xl px-3 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {editingId === ticket.id ? (
-                          <button
-                            onClick={() => handleSave(ticket.id)}
-                            className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-                          >
-                            ذخیره
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleEdit(ticket)}
-                            className="rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600"
-                          >
-                            ویرایش
-                          </button>
-                        )}
                         <button
-                          onClick={() => handleDelete(ticket.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedTicket(ticket);
+                            setOpenDialog(true);
+                          }}
+                          className="rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600"
+                        >
+                          جزئیات
+                        </button>
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDelete(ticket.id);
+                          }}
                           className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-600"
                         >
                           حذف

@@ -1,5 +1,35 @@
-import { query } from '../config/database.js';
-import bcrypt from 'bcryptjs';
+import { query } from "../config/database.js";
+import bcrypt from "bcryptjs";
+
+const CONTRACT_TIERS = ["basic", "standard", "premium"];
+
+const toISODate = (value, label) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    const error = new Error(`تاریخ ${label} معتبر نیست`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return date.toISOString().slice(0, 10);
+};
+
+const normalizeTier = (tier) => {
+  if (!tier) return "standard";
+  const normalized = tier.toLowerCase();
+  if (!CONTRACT_TIERS.includes(normalized)) {
+    const error = new Error("پلن قرارداد معتبر نیست");
+    error.statusCode = 400;
+    throw error;
+  }
+  return normalized;
+};
+
+const sanitizePhone = (phone) => {
+  if (!phone) return null;
+  const digits = phone.toString().replace(/[^0-9+]/g, "");
+  return digits || null;
+};
 
 // @desc    Get all customers
 // @route   GET /api/customers
@@ -10,56 +40,76 @@ export const getCustomers = async (req, res, next) => {
       search,
       page = 1,
       limit = 10,
-      sortBy = 'created_at',
-      sortOrder = 'DESC',
+      sortBy = "created_at",
+      sortOrder = "DESC",
     } = req.query;
 
-    const offset = (page - 1) * limit;
+    const pageNumber = Number(page) > 0 ? Number(page) : 1;
+    const limitNumber = Number(limit) > 0 ? Number(limit) : 10;
+    const offset = (pageNumber - 1) * limitNumber;
+    const allowedSortFields = ["created_at", "name", "contract_end_date"];
+    const sortField = allowedSortFields.includes(sortBy)
+      ? sortBy
+      : "created_at";
+    const sortDirection =
+      typeof sortOrder === "string" && sortOrder.toUpperCase() === "ASC"
+        ? "ASC"
+        : "DESC";
+
     const conditions = [];
     const values = [];
     let paramCount = 1;
 
-    // Search in name, email, company
     if (search) {
       conditions.push(
-        `(name ILIKE $${paramCount} OR email ILIKE $${paramCount} OR company ILIKE $${paramCount})`
+        `(c.name ILIKE $${paramCount} OR c.email ILIKE $${paramCount} OR c.company ILIKE $${paramCount})`
       );
       values.push(`%${search}%`);
       paramCount++;
     }
 
     const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    // Get total count
     const countResult = await query(
-      `SELECT COUNT(*) FROM customers ${whereClause}`,
+      `SELECT COUNT(*) FROM customers c ${whereClause}`,
       values
     );
-    const totalCount = parseInt(countResult.rows[0].count);
+    const totalCount = parseInt(countResult.rows[0].count, 10);
 
-    // Get customers
-    values.push(limit, offset);
+    values.push(limitNumber, offset);
     const result = await query(
       `SELECT
         c.*,
         u.name as created_by_name,
-        (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count
+        (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
+        CASE
+          WHEN c.contract_end_date IS NULL THEN 'unknown'
+          WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
+          WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+          ELSE 'active'
+        END as contract_status,
+        CASE
+          WHEN c.contract_end_date IS NULL THEN NULL
+          ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
+        END as contract_days_remaining
        FROM customers c
        LEFT JOIN users u ON c.created_by = u.id
        ${whereClause}
-       ORDER BY c.${sortBy} ${sortOrder}
+       ORDER BY c.${sortField} ${sortDirection}
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
       values
     );
 
     res.status(200).json({
       success: true,
-      count: result.rows.length,
-      total: totalCount,
-      pages: Math.ceil(totalCount / limit),
-      currentPage: parseInt(page),
       data: result.rows,
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limitNumber),
+      },
     });
   } catch (error) {
     next(error);
@@ -78,7 +128,17 @@ export const getCustomer = async (req, res, next) => {
         c.*,
         u.name as created_by_name,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
-        (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id AND status != 'بسته شده') as open_ticket_count
+        (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id AND status != 'بسته شده') as open_ticket_count,
+        CASE
+          WHEN c.contract_end_date IS NULL THEN 'unknown'
+          WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
+          WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+          ELSE 'active'
+        END as contract_status,
+        CASE
+          WHEN c.contract_end_date IS NULL THEN NULL
+          ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
+        END as contract_days_remaining
        FROM customers c
        LEFT JOIN users u ON c.created_by = u.id
        WHERE c.id = $1`,
@@ -88,7 +148,7 @@ export const getCustomer = async (req, res, next) => {
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'مشتری یافت نشد',
+        message: "مشتری یافت نشد",
       });
     }
 
@@ -106,38 +166,97 @@ export const getCustomer = async (req, res, next) => {
 // @access  Private (Admin/Support)
 export const createCustomer = async (req, res, next) => {
   try {
-    const { name, email, phone, company, address, city, country, notes } =
-      req.body;
+    const {
+      name,
+      email,
+      phone,
+      company,
+      address,
+      city,
+      country,
+      notes,
+      contract_start_date,
+      contract_end_date,
+      contract_tier,
+    } = req.body;
+
+    const trimmedName = name.trim();
+    const normalizedPhone = sanitizePhone(phone);
 
     // Check if customer with email exists
     if (email) {
       const existingCustomer = await query(
-        'SELECT id FROM customers WHERE email = $1',
+        "SELECT id FROM customers WHERE email = $1",
         [email]
       );
 
       if (existingCustomer.rows.length > 0) {
         return res.status(400).json({
           success: false,
-          message: 'مشتری با این ایمیل قبلاً ثبت شده است',
+          message: "مشتری با این ایمیل قبلاً ثبت شده است",
         });
       }
     }
 
-    // Create customer
+    if (normalizedPhone) {
+      const existingByPhone = await query(
+        "SELECT id FROM customers WHERE phone = $1",
+        [normalizedPhone]
+      );
+
+      if (existingByPhone.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "مشتری با این شماره تماس قبلاً ثبت شده است",
+        });
+      }
+    }
+
+    const existingByName = await query(
+      "SELECT id FROM customers WHERE LOWER(name) = LOWER($1)",
+      [trimmedName]
+    );
+
+    if (existingByName.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "مشتری با این نام قبلاً ثبت شده است",
+      });
+    }
+
+    const contractStartISO = toISODate(contract_start_date, "شروع");
+    const contractEndISO = toISODate(contract_end_date, "پایان");
+
+    if (contractStartISO && contractEndISO) {
+      const start = new Date(contractStartISO);
+      const end = new Date(contractEndISO);
+      if (end < start) {
+        const error = new Error(
+          "تاریخ پایان قرارداد باید بعد از تاریخ شروع باشد"
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    const tier = normalizeTier(contract_tier);
+
     const result = await query(
-      `INSERT INTO customers (name, email, phone, company, address, city, country, notes, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO customers (name, email, phone, company, address, city, country, notes, contract_start_date, contract_end_date, contract_tier, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
-        name,
+        trimmedName,
         email || null,
-        phone || null,
+        normalizedPhone,
         company || null,
         address || null,
         city || null,
         country || null,
         notes || null,
+        contractStartISO,
+        contractEndISO,
+        tier,
         req.user.id,
       ]
     );
@@ -145,12 +264,12 @@ export const createCustomer = async (req, res, next) => {
     const customer = result.rows[0];
 
     // Generate username from customer name (remove spaces and convert to lowercase)
-    const username = name.replace(/\s+/g, '').toLowerCase();
+    const username = trimmedName.replace(/\s+/g, "").toLowerCase();
     const password = username; // Password is same as username
 
     // Check if username already exists
     const existingUser = await query(
-      'SELECT id FROM users WHERE username = $1',
+      "SELECT id FROM users WHERE username = $1",
       [username]
     );
 
@@ -163,9 +282,17 @@ export const createCustomer = async (req, res, next) => {
 
       // Create user account for the customer
       await query(
-        `INSERT INTO users (name, username, email, password, role, phone)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [name, username, email || null, hashedPassword, 'user', phone || null]
+        `INSERT INTO users (name, username, email, password, role, phone, customer_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          trimmedName,
+          username,
+          email || null,
+          hashedPassword,
+          "user",
+          normalizedPhone,
+          customer.id,
+        ]
       );
 
       userCredentials = { username, password };
@@ -173,7 +300,7 @@ export const createCustomer = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'مشتری با موفقیت ایجاد شد',
+      message: "مشتری با موفقیت ایجاد شد",
       data: {
         customer: customer,
         userCredentials: userCredentials,
@@ -190,20 +317,33 @@ export const createCustomer = async (req, res, next) => {
 export const updateCustomer = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, company, address, city, country, notes } =
-      req.body;
+    const {
+      name,
+      email,
+      phone,
+      company,
+      address,
+      city,
+      country,
+      notes,
+      contract_start_date,
+      contract_end_date,
+      contract_tier,
+    } = req.body;
 
-    // Check if customer exists
-    const customerCheck = await query('SELECT id FROM customers WHERE id = $1', [
-      id,
-    ]);
+    const customerCheck = await query(
+      "SELECT id, contract_start_date, contract_end_date FROM customers WHERE id = $1",
+      [id]
+    );
 
     if (customerCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'مشتری یافت نشد',
+        message: "مشتری یافت نشد",
       });
     }
+
+    const existingCustomer = customerCheck.rows[0];
 
     const fieldsToUpdate = [];
     const values = [];
@@ -223,7 +363,7 @@ export const updateCustomer = async (req, res, next) => {
 
     if (phone !== undefined) {
       fieldsToUpdate.push(`phone = $${paramCount}`);
-      values.push(phone);
+      values.push(sanitizePhone(phone));
       paramCount++;
     }
 
@@ -257,10 +397,53 @@ export const updateCustomer = async (req, res, next) => {
       paramCount++;
     }
 
+    let nextContractStart = existingCustomer.contract_start_date;
+    let nextContractEnd = existingCustomer.contract_end_date;
+
+    if (contract_start_date !== undefined) {
+      const startValue =
+        contract_start_date && contract_start_date !== ""
+          ? toISODate(contract_start_date, "شروع")
+          : null;
+      fieldsToUpdate.push(`contract_start_date = $${paramCount}`);
+      values.push(startValue);
+      paramCount++;
+      nextContractStart = startValue;
+    }
+
+    if (contract_end_date !== undefined) {
+      const endValue =
+        contract_end_date && contract_end_date !== ""
+          ? toISODate(contract_end_date, "پایان")
+          : null;
+      fieldsToUpdate.push(`contract_end_date = $${paramCount}`);
+      values.push(endValue);
+      paramCount++;
+      nextContractEnd = endValue;
+    }
+
+    if (contract_tier !== undefined) {
+      fieldsToUpdate.push(`contract_tier = $${paramCount}`);
+      values.push(contract_tier ? normalizeTier(contract_tier) : null);
+      paramCount++;
+    }
+
+    if (nextContractStart && nextContractEnd) {
+      const startDate = new Date(nextContractStart);
+      const endDate = new Date(nextContractEnd);
+      if (endDate < startDate) {
+        const error = new Error(
+          "تاریخ پایان قرارداد باید بعد از تاریخ شروع باشد"
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
     if (fieldsToUpdate.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'هیچ فیلدی برای به‌روزرسانی ارسال نشده است',
+        message: "هیچ فیلدی برای به‌روزرسانی ارسال نشده است",
       });
     }
 
@@ -268,7 +451,7 @@ export const updateCustomer = async (req, res, next) => {
 
     const result = await query(
       `UPDATE customers
-       SET ${fieldsToUpdate.join(', ')}
+       SET ${fieldsToUpdate.join(", ")}
        WHERE id = $${paramCount}
        RETURNING *`,
       values
@@ -276,7 +459,7 @@ export const updateCustomer = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'مشتری با موفقیت به‌روزرسانی شد',
+      message: "مشتری با موفقیت به‌روزرسانی شد",
       data: result.rows[0],
     });
   } catch (error) {
@@ -292,20 +475,20 @@ export const deleteCustomer = async (req, res, next) => {
     const { id } = req.params;
 
     const result = await query(
-      'DELETE FROM customers WHERE id = $1 RETURNING id',
+      "DELETE FROM customers WHERE id = $1 RETURNING id",
       [id]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'مشتری یافت نشد',
+        message: "مشتری یافت نشد",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'مشتری با موفقیت حذف شد',
+      message: "مشتری با موفقیت حذف شد",
       data: {},
     });
   } catch (error) {

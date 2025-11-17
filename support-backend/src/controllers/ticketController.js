@@ -1,4 +1,4 @@
-import { query } from '../config/database.js';
+import { query } from "../config/database.js";
 
 // @desc    Get all tickets
 // @route   GET /api/tickets
@@ -11,8 +11,8 @@ export const getTickets = async (req, res, next) => {
       search,
       page = 1,
       limit = 10,
-      sortBy = 'created_at',
-      sortOrder = 'DESC',
+      sortBy = "created_at",
+      sortOrder = "DESC",
     } = req.query;
 
     const offset = (page - 1) * limit;
@@ -21,7 +21,7 @@ export const getTickets = async (req, res, next) => {
     let paramCount = 1;
 
     // Filter by user role
-    if (req.user.role === 'user') {
+    if (req.user.role === "user") {
       conditions.push(`t.user_id = $${paramCount}`);
       values.push(req.user.id);
       paramCount++;
@@ -51,7 +51,7 @@ export const getTickets = async (req, res, next) => {
     }
 
     const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Get total count
     const countResult = await query(
@@ -66,8 +66,12 @@ export const getTickets = async (req, res, next) => {
       `SELECT
         t.*,
         u.name as user_name,
+        u.name as owner,
         u.email as user_email,
+        u.phone as user_phone,
         c.name as customer_name,
+        c.name as customer,
+        c.phone as customer_phone,
         cat.name as category_name,
         a.name as assigned_to_name,
         (SELECT COUNT(*) FROM ticket_messages WHERE ticket_id = t.id) as message_count,
@@ -116,8 +120,12 @@ export const getTicket = async (req, res, next) => {
       SELECT
         t.*,
         u.name as user_name,
+        u.name as owner,
         u.email as user_email,
+        u.phone as user_phone,
         c.name as customer_name,
+        c.name as customer,
+        c.phone as customer_phone,
         cat.name as category_name,
         cat.color as category_color,
         a.name as assigned_to_name
@@ -132,8 +140,8 @@ export const getTicket = async (req, res, next) => {
     const values = [id];
 
     // If user role is 'user', check ownership
-    if (req.user.role === 'user') {
-      queryText += ' AND t.user_id = $2';
+    if (req.user.role === "user") {
+      queryText += " AND t.user_id = $2";
       values.push(req.user.id);
     }
 
@@ -142,7 +150,7 @@ export const getTicket = async (req, res, next) => {
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'تیکت یافت نشد',
+        message: "تیکت یافت نشد",
       });
     }
 
@@ -173,7 +181,7 @@ export const createTicket = async (req, res, next) => {
         category_id || null,
         req.user.id,
         customer_id || null,
-        channel || 'وب',
+        channel || "وب",
       ]
     );
 
@@ -186,7 +194,7 @@ export const createTicket = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'تیکت با موفقیت ایجاد شد',
+      message: "تیکت با موفقیت ایجاد شد",
       data: result.rows[0],
     });
   } catch (error) {
@@ -204,11 +212,11 @@ export const updateTicket = async (req, res, next) => {
       req.body;
 
     // Check if ticket exists and user has permission
-    let checkQuery = 'SELECT * FROM tickets WHERE id = $1';
+    let checkQuery = "SELECT * FROM tickets WHERE id = $1";
     const checkValues = [id];
 
-    if (req.user.role === 'user') {
-      checkQuery += ' AND user_id = $2';
+    if (req.user.role === "user") {
+      checkQuery += " AND user_id = $2";
       checkValues.push(req.user.id);
     }
 
@@ -217,7 +225,7 @@ export const updateTicket = async (req, res, next) => {
     if (ticketCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'تیکت یافت نشد یا شما مجوز ویرایش آن را ندارید',
+        message: "تیکت یافت نشد یا شما مجوز ویرایش آن را ندارید",
       });
     }
 
@@ -250,21 +258,18 @@ export const updateTicket = async (req, res, next) => {
     }
 
     // Only admin and support can change status and assignment
-    if (
-      (req.user.role === 'admin' || req.user.role === 'support') &&
-      status
-    ) {
+    if ((req.user.role === "admin" || req.user.role === "support") && status) {
       fieldsToUpdate.push(`status = $${paramCount}`);
       values.push(status);
       paramCount++;
 
-      if (status === 'بسته شده') {
+      if (status === "بسته شده") {
         fieldsToUpdate.push(`closed_at = CURRENT_TIMESTAMP`);
       }
     }
 
     if (
-      (req.user.role === 'admin' || req.user.role === 'support') &&
+      (req.user.role === "admin" || req.user.role === "support") &&
       assigned_to
     ) {
       fieldsToUpdate.push(`assigned_to = $${paramCount}`);
@@ -275,7 +280,7 @@ export const updateTicket = async (req, res, next) => {
     if (fieldsToUpdate.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'هیچ فیلدی برای به‌روزرسانی ارسال نشده است',
+        message: "هیچ فیلدی برای به‌روزرسانی ارسال نشده است",
       });
     }
 
@@ -283,7 +288,7 @@ export const updateTicket = async (req, res, next) => {
 
     const result = await query(
       `UPDATE tickets
-       SET ${fieldsToUpdate.join(', ')}
+       SET ${fieldsToUpdate.join(", ")}
        WHERE id = $${paramCount}
        RETURNING *`,
       values
@@ -291,7 +296,7 @@ export const updateTicket = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'تیکت با موفقیت به‌روزرسانی شد',
+      message: "تیکت با موفقیت به‌روزرسانی شد",
       data: result.rows[0],
     });
   } catch (error) {
@@ -306,20 +311,21 @@ export const deleteTicket = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const result = await query('DELETE FROM tickets WHERE id = $1 RETURNING id', [
-      id,
-    ]);
+    const result = await query(
+      "DELETE FROM tickets WHERE id = $1 RETURNING id",
+      [id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'تیکت یافت نشد',
+        message: "تیکت یافت نشد",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'تیکت با موفقیت حذف شد',
+      message: "تیکت با موفقیت حذف شد",
       data: {},
     });
   } catch (error) {
@@ -332,11 +338,11 @@ export const deleteTicket = async (req, res, next) => {
 // @access  Private
 export const getTicketStats = async (req, res, next) => {
   try {
-    let userFilter = '';
+    let userFilter = "";
     const values = [];
 
-    if (req.user.role === 'user') {
-      userFilter = 'WHERE user_id = $1';
+    if (req.user.role === "user") {
+      userFilter = "WHERE user_id = $1";
       values.push(req.user.id);
     }
 

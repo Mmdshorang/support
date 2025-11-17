@@ -9,6 +9,13 @@ const generateToken = (id) => {
   });
 };
 
+const isContractExpired = (contractEndDate) => {
+  if (!contractEndDate) return false;
+  const endDate = new Date(contractEndDate);
+  const today = new Date();
+  return endDate < today;
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -17,9 +24,10 @@ export const register = async (req, res, next) => {
     const { name, username, password, role = "user", email } = req.body;
 
     // Check if user exists with this username
-    const existingUser = await query("SELECT id FROM users WHERE username = $1", [
-      username,
-    ]);
+    const existingUser = await query(
+      "SELECT id FROM users WHERE username = $1",
+      [username]
+    );
 
     if (existingUser.rows.length > 0) {
       return res.status(400).json({
@@ -75,7 +83,10 @@ export const login = async (req, res, next) => {
 
     // Check for user by username
     const result = await query(
-      "SELECT * FROM users WHERE username = $1 AND is_active = true",
+      `SELECT u.*, c.contract_end_date
+       FROM users u
+       LEFT JOIN customers c ON u.customer_id = c.id
+       WHERE u.username = $1 AND u.is_active = true`,
       [username]
     );
 
@@ -95,6 +106,14 @@ export const login = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "نام کاربری یا رمز عبور اشتباه است",
+      });
+    }
+
+    if (user.role === "user" && isContractExpired(user.contract_end_date)) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "قرارداد شما منقضی شده است. برای تمدید با پشتیبانی تماس بگیرید.",
       });
     }
 
@@ -123,7 +142,22 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
   try {
     const result = await query(
-      "SELECT id, name, username, email, role, avatar, phone, created_at FROM users WHERE id = $1",
+      `SELECT
+        u.id,
+        u.name,
+        u.username,
+        u.email,
+        u.role,
+        u.avatar,
+        u.phone,
+        u.customer_id,
+        c.contract_start_date,
+        c.contract_end_date,
+        c.contract_tier,
+        u.created_at
+       FROM users u
+       LEFT JOIN customers c ON u.customer_id = c.id
+       WHERE u.id = $1`,
       [req.user.id]
     );
 
@@ -171,7 +205,7 @@ export const updateDetails = async (req, res, next) => {
       `UPDATE users
        SET ${fieldsToUpdate.join(", ")}
        WHERE id = $${paramCount}
-       RETURNING id, name, email, role, avatar, phone`,
+       RETURNING id, name, username, email, role, avatar, phone, customer_id`,
       values
     );
 

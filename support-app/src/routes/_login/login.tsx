@@ -57,25 +57,25 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 px-4 py-12">
-      <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 max-w-md w-full space-y-8 border border-white/20">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-900 px-4 py-12">
+      <div className="bg-white/95 dark:bg-slate-900/90 rounded-3xl shadow-2xl p-8 max-w-md w-full space-y-8 border border-white/40 dark:border-slate-800/60 backdrop-blur">
         <div className="flex flex-col items-center">
           <img
             src={logo}
             alt="Logo"
-            className="w-20 h-20 mb-3 shadow-md border border-white/30 rounded-full"
+            className="w-20 h-20 mb-3 shadow-md border border-slate-200 rounded-2xl bg-white/90 p-3"
           />
-          <h1 className="text-3xl font-extrabold text-white drop-shadow-md">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
             پشتیبانی حسابان
           </h1>
-          <p className="text-white/80 mt-2 text-lg">ورود به سامانه</p>
+          <p className="text-slate-500 dark:text-slate-300 mt-2 text-lg">ورود به سامانه</p>
         </div>
 
         <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
           <div>
             <label
               htmlFor="username"
-              className="block text-sm font-medium text-white/90 mb-2"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2"
             >
               نام کاربری
             </label>
@@ -86,7 +86,7 @@ function LoginPage() {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/60 focus:bg-white/30 transition"
+              className="w-full px-4 py-3 rounded-2xl bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition dark:bg-slate-800 dark:text-white dark:border-slate-700"
               placeholder="نام کاربری خود را وارد کنید"
               disabled={isLoading}
             />
@@ -95,7 +95,7 @@ function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-white/90 mb-2"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2"
             >
               رمز عبور
             </label>
@@ -107,14 +107,14 @@ function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/60 focus:bg-white/30 transition pr-12"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition pr-12 dark:bg-slate-800 dark:text-white dark:border-slate-700"
                 placeholder="رمز عبور خود را وارد کنید"
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-300 transition"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -128,7 +128,7 @@ function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 px-4 text-white bg-indigo-600 hover:bg-indigo-700 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-white/70 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 text-white bg-gradient-to-r from-indigo-600 via-sky-500 to-cyan-400 hover:from-indigo-500 hover:via-sky-400 hover:to-cyan-300 font-semibold rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -145,11 +145,11 @@ function LoginPage() {
         </form>
 
         {/* کاربران تست */}
-        <div className="mt-6 p-4 bg-white/10 rounded-lg border border-white/20">
-          <p className="text-white/90 text-sm font-semibold mb-2">
+        <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <p className="text-slate-700 dark:text-white text-sm font-semibold mb-2">
             کاربران تست:
           </p>
-          <div className="space-y-2 text-xs text-white/70">
+          <div className="space-y-2 text-xs text-slate-600 dark:text-slate-200">
             <div className="flex justify-between">
               <span>ادمین:</span>
               <button
@@ -158,7 +158,7 @@ function LoginPage() {
                   setUsername("admin");
                   setPassword("password123");
                 }}
-                className="text-yellow-300 hover:text-yellow-200 underline"
+                className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-400 underline"
               >
                 admin
               </button>
@@ -171,12 +171,12 @@ function LoginPage() {
                   setUsername("ali");
                   setPassword("password123");
                 }}
-                className="text-yellow-300 hover:text-yellow-200 underline"
+                className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-400 underline"
               >
                 ali
               </button>
             </div>
-            <p className="text-center mt-2 text-white/60">
+            <p className="text-center mt-2 text-slate-500 dark:text-slate-300">
               رمز عبور: password123
             </p>
           </div>

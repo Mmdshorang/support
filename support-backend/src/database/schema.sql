@@ -7,7 +7,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user', 'support')),
     avatar VARCHAR(500),
@@ -28,10 +29,26 @@ CREATE TABLE IF NOT EXISTS customers (
     city VARCHAR(100),
     country VARCHAR(100),
     notes TEXT,
+    contract_start_date DATE,
+    contract_end_date DATE,
+    contract_tier VARCHAR(20) DEFAULT 'standard',
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT customers_contract_tier_check CHECK (contract_tier IN ('basic', 'standard', 'premium'))
 );
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS customer_id UUID UNIQUE;
+
+DO $$
+BEGIN
+    ALTER TABLE users
+        ADD CONSTRAINT users_customer_id_fkey
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Ticket categories
 CREATE TABLE IF NOT EXISTS ticket_categories (

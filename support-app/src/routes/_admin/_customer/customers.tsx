@@ -12,6 +12,51 @@ export const Route = createFileRoute("/_admin/_customer/customers")({
   },
 });
 
+const statusMap = {
+  active: {
+    label: "فعال",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
+    text: "text-emerald-600 dark:text-emerald-300",
+  },
+  warning: {
+    label: "نیاز به تمدید",
+    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
+    text: "text-amber-600 dark:text-amber-300",
+  },
+  expired: {
+    label: "منقضی شده",
+    badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200",
+    text: "text-rose-600 dark:text-rose-300",
+  },
+  unknown: {
+    label: "نامشخص",
+    badge: "bg-slate-100 text-slate-600 dark:bg-slate-800/70 dark:text-slate-200",
+    text: "text-slate-500 dark:text-slate-300",
+  },
+} as const;
+
+const formatPhoneNumber = (phone?: string | null) => {
+  if (!phone) return "-";
+  const digits = phone.replace(/[^\d+]/g, "");
+  if (digits.length <= 4) return digits;
+  return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+};
+
+const formatRemainingDays = (customer: Customer) => {
+  if (!customer.contract_end_date) return "تاریخ قرارداد ثبت نشده";
+  const days = customer.contract_days_remaining ?? Math.ceil(
+    (new Date(customer.contract_end_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
+  );
+  if (days > 0) return `${days} روز باقی مانده`;
+  if (days === 0) return "امروز به پایان می‌رسد";
+  return `${Math.abs(days)} روز از پایان گذشته`;
+};
+
+const formatContractEndDate = (value?: string | null) => {
+  if (!value) return "نامشخص";
+  return new Date(value).toLocaleDateString("fa-IR");
+};
+
 function CustomerListPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,9 +78,7 @@ function CustomerListPage() {
         });
 
         setCustomers(response.data);
-        if (response.pagination) {
-          setTotalPages(response.pagination.totalPages);
-        }
+        setTotalPages(response.pagination?.totalPages ?? 1);
       } catch (error) {
         console.error("Error fetching customers:", error);
         toast.error("خطا در دریافت لیست مشتریان");
@@ -115,13 +158,16 @@ function CustomerListPage() {
                   نام
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
-                  تلفن
+                  شماره تماس
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
                   شرکت/مجموعه
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
                   تاریخ ثبت
+                </th>
+                <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
+                  وضعیت قرارداد
                 </th>
                 <th className="rounded-l-xl bg-slate-100/70 px-3 py-2 text-center dark:bg-slate-800/70">
                   عملیات
@@ -161,8 +207,11 @@ function CustomerListPage() {
                     <td className="rounded-r-3xl px-3 py-4 font-semibold">
                       {customer.name}
                     </td>
-                    <td className="px-3 py-4 text-sm font-mono text-slate-500 dark:text-slate-300">
-                      {customer.phone || "-"}
+                    <td
+                      className="px-3 py-4 text-sm font-mono text-slate-600 dark:text-slate-200 text-left"
+                      dir="ltr"
+                    >
+                      {formatPhoneNumber(customer.phone)}
                     </td>
                     <td className="px-3 py-4 text-sm">
                       {customer.company || "-"}
@@ -171,6 +220,25 @@ function CustomerListPage() {
                       {new Date(customer.created_at).toLocaleDateString(
                         "fa-IR"
                       )}
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex flex-col gap-1 text-xs">
+                        <span
+                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 font-bold ${statusMap[customer.contract_status ?? "unknown"].badge
+                            }`}
+                        >
+                          {statusMap[customer.contract_status ?? "unknown"].label}
+                        </span>
+                        <span
+                          className={`font-semibold ${statusMap[customer.contract_status ?? "unknown"].text
+                            }`}
+                        >
+                          {formatRemainingDays(customer)}
+                        </span>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-400">
+                          پایان: {formatContractEndDate(customer.contract_end_date)}
+                        </span>
+                      </div>
                     </td>
                     <td className="rounded-l-3xl px-3 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
