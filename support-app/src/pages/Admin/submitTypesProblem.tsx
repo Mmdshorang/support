@@ -18,7 +18,7 @@ export default function IssuesList() {
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [draftValue, setDraftValue] = useState("");
 	const [newIssue, setNewIssue] = useState("");
-	const [newCategory, setNewCategory] = useState<Issue["category"]>("کاربری");
+	const [newCategory] = useState<Issue["category"]>("کاربری");
 
 	// Fetch categories from API
 	useEffect(() => {

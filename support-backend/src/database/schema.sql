@@ -67,14 +67,16 @@ CREATE TABLE IF NOT EXISTS tickets (
     subject VARCHAR(500) NOT NULL,
     description TEXT NOT NULL,
     category_id UUID REFERENCES ticket_categories(id) ON DELETE SET NULL,
-    priority VARCHAR(20) NOT NULL DEFAULT 'متوسط' CHECK (priority IN ('کم', 'متوسط', 'زیاد', 'بحرانی')),
+    support_type VARCHAR(20) NOT NULL DEFAULT 'remote' CHECK (support_type IN ('remote', 'inPerson')),
     status VARCHAR(50) NOT NULL DEFAULT 'در انتظار' CHECK (status IN ('در انتظار', 'در حال پیگیری', 'پاسخ داده شده', 'بسته شده')),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
     assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
-    channel VARCHAR(50) DEFAULT 'وب' CHECK (channel IN ('وب', 'تلفن', 'ایمیل', 'واتساپ')),
+    solution TEXT,
     resolved_at TIMESTAMP,
     closed_at TIMESTAMP,
+    last_user_read_at TIMESTAMP,
+    last_admin_read_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -130,7 +132,6 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON tickets(user_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status);
-CREATE INDEX IF NOT EXISTS idx_tickets_priority ON tickets(priority);
 CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON tickets(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket_id ON ticket_messages(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

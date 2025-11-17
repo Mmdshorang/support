@@ -18,6 +18,7 @@ import { Route as LoginLogoutRouteImport } from './routes/_login/logout'
 import { Route as LoginLoginRouteImport } from './routes/_login/login'
 import { Route as AdminSettingsRouteImport } from './routes/_admin/settings'
 import { Route as UserTicketsTicketIdRouteImport } from './routes/_user/tickets/$ticketId'
+import { Route as UserSettingsRouteImport } from './routes/_user/settings'
 import { Route as UserSubmitTicketSubmitTicketRouteImport } from './routes/_user/_submitTicket/submitTicket'
 import { Route as AdminStatusTicketStatusTicketRouteImport } from './routes/_admin/_statusTicket/statusTicket'
 import { Route as AdminReportReportRouteImport } from './routes/_admin/_report/report'
@@ -62,6 +63,11 @@ const LoginLoginRoute = LoginLoginRouteImport.update({
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/_admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserSettingsRoute = UserSettingsRouteImport.update({
+  id: '/_user/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -109,7 +115,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof AdminSettingsRoute
+  '/settings': typeof UserSettingsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
@@ -126,7 +133,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof AdminSettingsRoute
+  '/settings': typeof UserSettingsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
   '/_admin/settings': typeof AdminSettingsRoute
+  '/_user/settings': typeof UserSettingsRoute
   '/_login/login': typeof LoginLoginRoute
   '/_login/logout': typeof LoginLogoutRoute
   '/_user/new-ticket': typeof UserNewTicketRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/help'
     | '/settings'
+    | '/admin/settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/help'
     | '/settings'
+    | '/admin/settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/help'
     | '/_admin/settings'
+    | '/_user/settings'
     | '/_login/login'
     | '/_login/logout'
     | '/_user/new-ticket'
@@ -216,6 +228,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   HelpRoute: typeof HelpRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  UserSettingsRoute: typeof UserSettingsRoute
   LoginLoginRoute: typeof LoginLoginRoute
   LoginLogoutRoute: typeof LoginLogoutRoute
   UserNewTicketRoute: typeof UserNewTicketRoute
@@ -282,9 +295,16 @@ declare module '@tanstack/react-router' {
     }
     '/_admin/settings': {
       id: '/_admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_user/settings': {
+      id: '/_user/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
+      preLoaderRoute: typeof UserSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_user/tickets/$ticketId': {
@@ -344,6 +364,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   HelpRoute: HelpRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  UserSettingsRoute: UserSettingsRoute,
   LoginLoginRoute: LoginLoginRoute,
   LoginLogoutRoute: LoginLogoutRoute,
   UserNewTicketRoute: UserNewTicketRoute,

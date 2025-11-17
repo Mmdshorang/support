@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Search, MessageSquare, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { Search, MessageSquare, Clock, CheckCircle2 } from "lucide-react";
 
 import { ticketsApi, type Ticket } from "../../services/api/tickets";
 
@@ -11,20 +11,14 @@ const STATUS_STYLES = {
   "بسته شده": "bg-slate-200 text-slate-700 dark:bg-slate-700/60 dark:text-slate-100",
 };
 
-const PRIORITY_STYLES = {
-  کم: "text-slate-500",
-  متوسط: "text-sky-500",
-  زیاد: "text-amber-500",
-  بحرانی: "text-rose-500",
-};
-
 export default function UserDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stats, setStats] = useState({
     openTickets: 0,
-    criticalTickets: 0,
     pendingTickets: 0,
+    inProgressTickets: 0,
+    answeredTickets: 0,
     closedTickets: 0,
   });
 
@@ -55,9 +49,13 @@ export default function UserDashboard() {
         const statsData = response.data;
 
         setStats({
-          openTickets: statsData.by_status.pending + statsData.by_status.in_progress + statsData.by_status.answered,
-          criticalTickets: statsData.by_priority.critical,
+          openTickets:
+            statsData.by_status.pending +
+            statsData.by_status.in_progress +
+            statsData.by_status.answered,
           pendingTickets: statsData.by_status.pending,
+          inProgressTickets: statsData.by_status.in_progress,
+          answeredTickets: statsData.by_status.answered,
           closedTickets: statsData.by_status.closed,
         });
       } catch { /* empty */ }
@@ -90,16 +88,22 @@ export default function UserDashboard() {
       variant: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20",
     },
     {
-      title: "بحرانی",
-      value: stats.criticalTickets,
-      icon: AlertTriangle,
-      variant: "bg-rose-500/10 text-rose-600 dark:bg-rose-500/20",
+      title: "در حال پیگیری",
+      value: stats.inProgressTickets,
+      icon: Clock,
+      variant: "bg-sky-500/10 text-sky-600 dark:bg-sky-500/20",
+    },
+    {
+      title: "پاسخ داده شده",
+      value: stats.answeredTickets,
+      icon: CheckCircle2,
+      variant: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20",
     },
     {
       title: "بسته شده",
       value: stats.closedTickets,
       icon: CheckCircle2,
-      variant: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20",
+      variant: "bg-slate-500/10 text-slate-600 dark:bg-slate-700/30",
     },
   ];
 
@@ -123,7 +127,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Stats */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {STATS.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -192,9 +196,9 @@ export default function UserDashboard() {
                       <span className="text-sm font-bold text-slate-400">#{ticket.id}</span>
                       <h3 className="text-base font-semibold dark:text-white">{ticket.subject}</h3>
 
-                      {ticket.unread_count > 0 && (
+                      {ticket.user_unread_count && ticket.user_unread_count > 0 && (
                         <span className="h-5 w-5 bg-rose-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                          {ticket.unread_count}
+                          {ticket.user_unread_count}
                         </span>
                       )}
                     </div>
@@ -210,9 +214,6 @@ export default function UserDashboard() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className={`text-sm font-bold ${PRIORITY_STYLES[ticket.priority]}`}>
-                      {ticket.priority}
-                    </span>
                     <span
                       className={`px-3 py-1.5 text-xs rounded-xl font-semibold ${STATUS_STYLES[ticket.status]}`}
                     >

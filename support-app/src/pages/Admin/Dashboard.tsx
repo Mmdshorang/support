@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "react-toastify";
-import {
-  Search,
-  MessageSquare,
-  AlertTriangle,
-  Clock3,
-  CheckCircle2,
-} from "lucide-react";
+import { Search, MessageSquare, CheckCircle2 } from "lucide-react";
 
-import { ticketsApi, type Ticket } from "../../services/api/tickets";
+import {
+  ticketsApi,
+  type Ticket,
+  type TicketMessage,
+  type SupportType,
+  type TicketStatus,
+} from "../../services/api/tickets";
 
 const PAGE_SIZE = 10;
 
@@ -23,12 +24,16 @@ const STATUS_STYLES = {
     "bg-slate-200 text-slate-700 dark:bg-slate-700/60 dark:text-slate-100",
 };
 
-const TYPE_SUPPORT = {
+const SUPPORT_BADGES: Record<SupportType, string> = {
   inPerson: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
   remote:
     "bg-slate-200 text-slate-700 dark:bg-slate-700/60 dark:text-slate-100",
 };
 
+const SUPPORT_LABELS: Record<SupportType, string> = {
+  inPerson: "حضوری",
+  remote: "غیرحضوری",
+};
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,6 +45,20 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     openTickets: 0,
     closedTickets: 0,
+  });
+
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [detailMessages, setDetailMessages] = useState<TicketMessage[]>([]);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [detailForm, setDetailForm] = useState<{
+    status: TicketStatus;
+    supportType: SupportType;
+    solution: string;
+  }>({
+    status: "در انتظار",
+    supportType: "remote",
+    solution: "",
   });
 
   // Fetch tickets
@@ -98,6 +117,84 @@ export default function AdminDashboard() {
         t.id.toString().includes(query)
     );
   }, [tickets, searchQuery]);
+
+  const loadTicketMessages = useCallback(async (ticketId: number) => {
+    try {
+      setIsDetailLoading(true);
+      const response = await ticketsApi.getMessages(ticketId);
+      setDetailMessages(response.data);
+      setTickets((prev) =>
+        prev.map((ticket) =>
+          ticket.id === ticketId ? { ...ticket, admin_unread_count: 0 } : ticket
+        )
+      );
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      toast.error("خطا در دریافت پیام‌های تیکت");
+    } finally {
+      setIsDetailLoading(false);
+    }
+  }, []);
+
+  const handleSelectTicket = useCallback(
+    async (ticket: Ticket) => {
+      setSelectedTicket(ticket);
+      setDetailForm({
+        status: ticket.status,
+        supportType: ticket.support_type === "inPerson" ? "inPerson" : "remote",
+        solution: ticket.solution || "",
+      });
+      setDetailMessages([]);
+      await loadTicketMessages(ticket.id);
+    },
+    [loadTicketMessages]
+  );
+
+  const handleCloseDetail = () => {
+    setSelectedTicket(null);
+    setDetailMessages([]);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedTicket) return;
+    try {
+      setIsSavingChanges(true);
+      await ticketsApi.updateTicket(selectedTicket.id, {
+        status: detailForm.status,
+        support_type: detailForm.supportType,
+        solution: detailForm.solution,
+      });
+
+      setTickets((prev) =>
+        prev.map((ticket) =>
+          ticket.id === selectedTicket.id
+            ? {
+                ...ticket,
+                status: detailForm.status,
+                support_type: detailForm.supportType,
+                solution: detailForm.solution,
+              }
+            : ticket
+        )
+      );
+      setSelectedTicket((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: detailForm.status,
+              support_type: detailForm.supportType,
+              solution: detailForm.solution,
+            }
+          : prev
+      );
+      toast.success("تغییرات با موفقیت ذخیره شد");
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      toast.error("خطا در ذخیره تغییرات تیکت");
+    } finally {
+      setIsSavingChanges(false);
+    }
+  };
 
   const STATS = [
     {
@@ -205,56 +302,85 @@ export default function AdminDashboard() {
               </thead>
 
               <tbody>
-                {filteredTickets.map((ticket) => (
-                  <tr
-                    key={ticket.id}
-                    className="rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700"
-                  >
-                    <td className="px-3 py-4 rounded-r-2xl">
-                      <p className="font-semibold">#{ticket.id}</p>
-                    </td>
+                {filteredTickets.map((ticket) => {
+                  const supportType: SupportType =
+                    ticket.support_type === "inPerson" ? "inPerson" : "remote";
+                  const hasUnread =
+                    !!ticket.admin_unread_count &&
+                    ticket.admin_unread_count > 0;
+                  const isActive = selectedTicket?.id === ticket.id;
 
-                    <td className="px-3 py-4">
-                      <p className="font-medium">
-                        {ticket.customer || "نامشخص"}
-                      </p>
-                    </td>
-                    <td className="px-3 py-4">
-                      <p className="font-medium">
-                        {ticket.phone || "نامشخص"}
-                      </p>
-                    </td>
-                    <td className="px-1 py-4">
-                      <p className="text-sm">{ticket.subject}</p>
-                    </td>
+                  const customerName =
+                    ticket.customer ||
+                    ticket.customer_name ||
+                    ticket.owner ||
+                    ticket.user_name ||
+                    "نامشخص";
+                  const customerPhone =
+                    ticket.customer_phone ||
+                    ticket.owner_phone ||
+                    ticket.user_phone ||
+                    "نامشخص";
 
-                    <td className="px-1 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs rounded-xl font-semibold ${
-                          TYPE_SUPPORT[ticket.typeSupport]
-                        }`}
-                      >
-                        {ticket.typeSupport || "نامشخص"}
-                      </span>
-                    </td>
-                    <td className="px-1 py-4">
-                      <p className="text-sm">{ticket.solution || "بدون جواب"}</p>
-                    </td>
-                    <td className="px-3 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs rounded-xl font-semibold ${
-                          STATUS_STYLES[ticket.status]
-                        }`}
-                      >
-                        {ticket.status}
-                      </span>
-                    </td>
+                  return (
+                    <tr
+                      key={ticket.id}
+                      onClick={() => handleSelectTicket(ticket)}
+                      className={`rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 ${
+                        isActive
+                          ? "ring-2 ring-indigo-200 dark:ring-indigo-500"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-3 py-4 rounded-r-2xl">
+                        <div className="flex items-center gap-2 font-semibold">
+                          <span>#{ticket.id}</span>
+                          {hasUnread && (
+                            <span className="h-2 w-2 rounded-full bg-rose-500" />
+                          )}
+                        </div>
+                      </td>
 
-                    <td className="px-3 py-4 rounded-l-2xl text-xs">
-                      {new Date(ticket.created_at).toLocaleDateString("fa-IR")}
-                    </td>
-                  </tr>
-                ))}
+                      <td className="px-3 py-4">
+                        <p className="font-medium">{customerName}</p>
+                      </td>
+                      <td className="px-3 py-4">
+                        <p className="font-medium">{customerPhone}</p>
+                      </td>
+                      <td className="px-1 py-4">
+                        <p className="text-sm">{ticket.subject}</p>
+                      </td>
+
+                      <td className="px-1 py-4">
+                        <span
+                          className={`px-3 py-1 text-xs rounded-xl font-semibold ${SUPPORT_BADGES[supportType]}`}
+                        >
+                          {SUPPORT_LABELS[supportType]}
+                        </span>
+                      </td>
+                      <td className="px-1 py-4">
+                        <p className="text-sm">
+                          {ticket.solution || "بدون جواب"}
+                        </p>
+                      </td>
+                      <td className="px-3 py-4">
+                        <span
+                          className={`px-3 py-1 text-xs rounded-xl font-semibold ${
+                            STATUS_STYLES[ticket.status]
+                          }`}
+                        >
+                          {ticket.status}
+                        </span>
+                      </td>
+
+                      <td className="px-3 py-4 rounded-l-2xl text-xs">
+                        {new Date(ticket.created_at).toLocaleDateString(
+                          "fa-IR"
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
@@ -268,11 +394,219 @@ export default function AdminDashboard() {
           </>
         )}
       </section>
+
+      {selectedTicket && (
+        <section className="space-y-6 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                تیکت #{selectedTicket.id}
+              </p>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                {selectedTicket.subject}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+                {selectedTicket.description}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/tickets/$ticketId"
+                params={{ ticketId: selectedTicket.id.toString() }}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200"
+              >
+                مشاهده مکالمه کامل
+              </Link>
+              <button
+                onClick={handleCloseDetail}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
+              >
+                بستن
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-4 rounded-2xl border border-slate-200/70 bg-slate-50/70 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+              <div className="flex items-center justify-between">
+                <span>مشتری</span>
+                <strong>
+                  {selectedTicket.customer ||
+                    selectedTicket.customer_name ||
+                    selectedTicket.owner ||
+                    selectedTicket.user_name ||
+                    "نامشخص"}
+                </strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>شماره تماس</span>
+                <strong>
+                  {selectedTicket.customer_phone ||
+                    selectedTicket.owner_phone ||
+                    selectedTicket.user_phone ||
+                    "نامشخص"}
+                </strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>وضعیت فعلی</span>
+                <strong>{selectedTicket.status}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>نوع پشتیبانی</span>
+                <strong>
+                  {
+                    SUPPORT_LABELS[
+                      (selectedTicket.support_type === "inPerson"
+                        ? "inPerson"
+                        : "remote") as SupportType
+                    ]
+                  }
+                </strong>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  وضعیت تیکت
+                </label>
+                <select
+                  value={detailForm.status}
+                  onChange={(event) =>
+                    setDetailForm((prev) => ({
+                      ...prev,
+                      status: event.target.value as TicketStatus,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                >
+                  {[
+                    "در انتظار",
+                    "در حال پیگیری",
+                    "پاسخ داده شده",
+                    "بسته شده",
+                  ].map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  نوع پشتیبانی
+                </label>
+                <div className="flex gap-3">
+                  {(["remote", "inPerson"] as SupportType[]).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() =>
+                        setDetailForm((prev) => ({
+                          ...prev,
+                          supportType: type,
+                        }))
+                      }
+                      className={`flex-1 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
+                        detailForm.supportType === type
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-100"
+                          : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {SUPPORT_LABELS[type]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  راه‌حل / یادداشت
+                </label>
+                <textarea
+                  rows={4}
+                  value={detailForm.solution}
+                  onChange={(event) =>
+                    setDetailForm((prev) => ({
+                      ...prev,
+                      solution: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  placeholder="راه‌حل یا توضیحات تکمیلی را بنویسید..."
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={isSavingChanges}
+                  className="inline-flex items-center rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {isSavingChanges ? "در حال ذخیره..." : "ذخیره تغییرات"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-slate-200/70 p-4 dark:border-slate-700">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+                پیام‌های اخیر
+              </h4>
+              <button
+                onClick={() => loadTicketMessages(selectedTicket.id)}
+                className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-300"
+              >
+                به‌روزرسانی
+              </button>
+            </div>
+            {isDetailLoading ? (
+              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+                در حال بارگذاری پیام‌ها...
+              </div>
+            ) : detailMessages.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-300">
+                پیامی برای نمایش وجود ندارد.
+              </p>
+            ) : (
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                {detailMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className="rounded-2xl border border-slate-200/80 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+                      <span>{message.sender_name || "کاربر"}</span>
+                      <span>
+                        {new Date(message.created_at).toLocaleDateString(
+                          "fa-IR"
+                        )}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-slate-700 dark:text-slate-200">
+                      {message.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
 
-function Pagination({ page, pageCount, onChange }) {
+type PaginationProps = {
+  page: number;
+  pageCount: number;
+  onChange: (page: number) => void;
+};
+
+function Pagination({ page, pageCount, onChange }: PaginationProps) {
   const pages = useMemo(
     () => Array.from({ length: pageCount }, (_, i) => i + 1),
     [pageCount]

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import moment from "jalali-moment";
 import { toast } from "react-toastify";
+import { useNavigate } from "@tanstack/react-router";
 import { ticketsApi } from "../../services/api/tickets";
 import type { Ticket as ApiTicket } from "../../services/api/tickets";
-import TicketDialog from "./ticketDialog";
 
 interface Ticket {
   id: number;
@@ -12,7 +12,7 @@ interface Ticket {
   problem: string;
   description: string;
   category: string;
-  typeSupport: "inPerson" | "remote";
+  supportType: "inPerson" | "remote";
   status: "open" | "closed";
   statusText: string;
   createdAt: string;
@@ -26,7 +26,7 @@ const statusBadge: Record<Ticket["status"], string> = {
     "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
 };
 
-const typeBadge: Record<Ticket["typeSupport"], string> = {
+const typeBadge: Record<Ticket["supportType"], string> = {
   inPerson:
     "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-100",
   remote: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
@@ -35,12 +35,13 @@ const typeBadge: Record<Ticket["typeSupport"], string> = {
 export function StatusTicketPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const navigate = useNavigate();
 
-  const handleRowClick = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setOpenDialog(true);
+  const openTicketConversation = (ticketId: number) => {
+    navigate({
+      to: "/tickets/$ticketId",
+      params: { ticketId: ticketId.toString() },
+    });
   };
 
   const formatPhoneNumber = (value?: string | null) => {
@@ -50,20 +51,7 @@ export function StatusTicketPage() {
     return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
   };
 
-  const determineSupportType = (channel?: string | null): Ticket["typeSupport"] => {
-    if (!channel) return "remote";
-    const normalized = channel.trim();
-    if (
-      ["حضوری", "inPerson", "تلفن", "مراجعه حضوری"].some((label) =>
-        normalized.includes(label)
-      )
-    ) {
-      return "inPerson";
-    }
-    return "remote";
-  };
-
-  const supportTypeLabel = (type: Ticket["typeSupport"]) =>
+const supportTypeLabel = (type: Ticket["supportType"]) =>
     type === "inPerson" ? "حضوری" : "غیرحضوری";
 
   // Fetch tickets from API
@@ -78,7 +66,8 @@ export function StatusTicketPage() {
 
         // Map API tickets to StatusTicket interface
         const mappedTickets: Ticket[] = response.data.map((ticket: ApiTicket) => {
-          const typeSupport = determineSupportType(ticket.channel);
+          const supportType: Ticket["supportType"] =
+            ticket.support_type === "inPerson" ? "inPerson" : "remote";
           const statusText = ticket.status || "نامشخص";
           return {
             id: ticket.id,
@@ -94,14 +83,14 @@ export function StatusTicketPage() {
             problem: ticket.subject || "نامشخص",
             description: ticket.description || "توضیحی ثبت نشده است",
             category: ticket.category_name || "نامشخص",
-            typeSupport,
+            supportType,
             status: ticket.status === "بسته شده" ? "closed" : "open",
             statusText,
             createdAt: moment(ticket.created_at || ticket.updated_at)
               .locale("fa")
               .format("jYYYY/jMM/jDD HH:mm"),
             solution: ticket.solution || "راه‌حلی ثبت نشده است",
-            supportLabel: supportTypeLabel(typeSupport),
+            supportLabel: supportTypeLabel(supportType),
           };
         });
 
@@ -121,7 +110,7 @@ export function StatusTicketPage() {
     const open = tickets.filter((ticket) => ticket.status === "open").length;
     const closed = tickets.length - open;
     const inPerson = tickets.filter(
-      (ticket) => ticket.typeSupport === "inPerson"
+      (ticket) => ticket.supportType === "inPerson"
     ).length;
     return { total: tickets.length, open, closed, inPerson };
   }, [tickets]);
@@ -247,7 +236,7 @@ export function StatusTicketPage() {
                 tickets.map((ticket) => (
                   <tr
                     key={ticket.id}
-                    onClick={() => handleRowClick(ticket)}
+                    onClick={() => openTicketConversation(ticket.id)}
                     className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70"
                   >
                     <td className="rounded-r-3xl px-3 py-4 font-semibold text-slate-500 dark:text-slate-300">
@@ -278,10 +267,10 @@ export function StatusTicketPage() {
                     </td>
                     <td className="px-3 py-4">
                       <span
-                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${typeBadge[ticket.typeSupport]
+                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${typeBadge[ticket.supportType]
                           }`}
                       >
-                        {supportTypeLabel(ticket.typeSupport)}
+                        {supportTypeLabel(ticket.supportType)}
                       </span>
                     </td>
                     <td className="px-3 py-4 text-xs text-slate-600 dark:text-slate-200">
@@ -303,12 +292,11 @@ export function StatusTicketPage() {
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
-                            setSelectedTicket(ticket);
-                            setOpenDialog(true);
+                            openTicketConversation(ticket.id);
                           }}
                           className="rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600"
                         >
-                          جزئیات
+                          مشاهده چت
                         </button>
                         <button
                           onClick={(event) => {
@@ -339,16 +327,6 @@ export function StatusTicketPage() {
           </table>
         </div>
       </section>
-      <TicketDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        ticket={selectedTicket}
-        onSubmit={(answer) => {
-          console.log("ANSWER:", answer);
-          // اینجا API بزن
-          setOpenDialog(false);
-        }}
-      />
     </div>
   );
 }

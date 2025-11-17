@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import  { useState, useRef, useEffect, type KeyboardEvent } from "react";
 
 export type Option = { value: string; label: string };
 

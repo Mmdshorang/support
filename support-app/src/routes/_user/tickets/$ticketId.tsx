@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ArrowRight,
   Calendar,
   Clock,
   MessageCircle,
   Paperclip,
+  RefreshCw,
   Send,
+  Shield,
   User,
 } from "lucide-react";
 import { requireAuth } from "../../../lib/auth-guard";
@@ -14,15 +16,18 @@ import {
   ticketsApi,
   type Ticket,
   type TicketMessage,
+  type SupportType,
 } from "../../../services/api/tickets";
 import { toast } from "react-toastify";
+import ToggleButton from "../../../components/common/ToggleButton";
+import { useAtomValue } from "jotai";
+import { userAtom } from "../../../stores/auth";
 
 type TicketStatus =
   | "در انتظار"
   | "در حال پیگیری"
   | "پاسخ داده شده"
   | "بسته شده";
-
 
 const STATUS_STYLES: Record<TicketStatus, string> = {
   "در انتظار":
@@ -35,6 +40,11 @@ const STATUS_STYLES: Record<TicketStatus, string> = {
     "bg-slate-200 text-slate-700 dark:bg-slate-700/60 dark:text-slate-100",
 };
 
+const SUPPORT_LABELS: Record<SupportType, string> = {
+  remote: "غیرحضوری",
+  inPerson: "حضوری",
+};
+
 export const Route = createFileRoute("/_user/tickets/$ticketId")({
   component: TicketDetailPage,
   beforeLoad: () => {
@@ -44,24 +54,47 @@ export const Route = createFileRoute("/_user/tickets/$ticketId")({
 
 function TicketDetailPage() {
   const { ticketId } = Route.useParams();
+  const user = useAtomValue(userAtom);
+  const isStaffUser = user?.role === "admin" || user?.role === "support";
+  const backLink = isStaffUser ? "/statusTicket" : "/user-dashboard";
+  const backLabel = isStaffUser ? "بازگشت به تیکت‌ها" : "بازگشت به داشبورد";
+
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [isInternalNote, setIsInternalNote] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshingMessages, setIsRefreshingMessages] = useState(false);
 
-  // Fetch ticket and messages
+  const visibleMessages = useMemo(
+    () => (isStaffUser ? messages : messages.filter((msg) => !msg.is_internal)),
+    [messages, isStaffUser]
+  );
+
+  const fetchMessages = useCallback(
+    async (showSpinner: boolean = true) => {
+      try {
+        if (showSpinner) setIsRefreshingMessages(true);
+        const response = await ticketsApi.getMessages(Number(ticketId));
+        setMessages(response.data);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        toast.error("خطا در دریافت پیام‌ها");
+      } finally {
+        if (showSpinner) setIsRefreshingMessages(false);
+      }
+    },
+    [ticketId]
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [ticketRes, messagesRes] = await Promise.all([
-          ticketsApi.getTicket(Number(ticketId)),
-          ticketsApi.getMessages(Number(ticketId)),
-        ]);
-
+        const ticketRes = await ticketsApi.getTicket(Number(ticketId));
         setTicket(ticketRes.data);
-        setMessages(messagesRes.data);
+        await fetchMessages(false);
       } catch (error) {
         console.error("Error fetching ticket:", error);
         toast.error("خطا در دریافت اطلاعات تیکت");
@@ -71,7 +104,7 @@ function TicketDetailPage() {
     };
 
     fetchData();
-  }, [ticketId]);
+  }, [ticketId, fetchMessages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,10 +114,14 @@ function TicketDetailPage() {
     try {
       const response = await ticketsApi.sendMessage(
         Number(ticketId),
-        newMessage.trim()
+        newMessage.trim(),
+        isStaffUser ? isInternalNote : false
       );
-      setMessages([...messages, response.data]);
+      setMessages((prev) => [...prev, response.data]);
       setNewMessage("");
+      if (isStaffUser) {
+        setIsInternalNote(false);
+      }
       toast.success("پیام ارسال شد");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -112,11 +149,11 @@ function TicketDetailPage() {
       <div className="text-center py-12">
         <p className="text-slate-500 dark:text-slate-300">تیکت یافت نشد</p>
         <Link
-          to="/user-dashboard"
+          to={backLink}
           className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
         >
           <ArrowRight className="h-4 w-4" />
-          بازگشت به داشبورد
+          {backLabel}
         </Link>
       </div>
     );
@@ -127,11 +164,11 @@ function TicketDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
-          to="/user-dashboard"
+          to={backLink}
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400"
         >
           <ArrowRight className="h-4 w-4" />
-          بازگشت به داشبورد
+          {backLabel}
         </Link>
       </div>
 
@@ -168,11 +205,6 @@ function TicketDetailPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {/* <span
-							className={`inline-flex items-center gap-1 rounded-xl px-4 py-2 text-sm font-semibold ${PRIORITY_STYLES[ticket.priority]}`}
-						>
-							اولویت: {ticket.priority}
-						</span> */}
             <span
               className={`inline-flex items-center gap-1 rounded-xl px-4 py-2 text-sm font-semibold ${
                 STATUS_STYLES[ticket.status]
@@ -182,14 +214,58 @@ function TicketDetailPage() {
             </span>
           </div>
         </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200/70 bg-slate-50/60 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+              مشخصات مشتری
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span>نام</span>
+                <strong>{ticket.customer_name || ticket.customer || "نامشخص"}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>شماره تماس</span>
+                <strong>{ticket.customer_phone || ticket.user_phone || "نامشخص"}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>کانال ثبت</span>
+                <strong>
+                  {ticket.support_type
+                    ? SUPPORT_LABELS[ticket.support_type as SupportType]
+                    : "نامشخص"}
+                </strong>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200/70 bg-slate-50/60 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+              مالک تیکت
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span>کاربر</span>
+                <strong>{ticket.user_name || ticket.owner || "نامشخص"}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>وضعیت فعلی</span>
+                <strong>{ticket.status}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      {ticket.status == "پاسخ داده شده" ? (
+
+      {ticket.status === "پاسخ داده شده" ? (
         <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
-          <div>راه‌حل</div>
-		  <div>{ticket.resolved_at}</div>
+          <div className="text-sm font-semibold text-white">راه‌حل</div>
+          <div className="mt-2 text-white/90">
+            {ticket.solution || "راه‌حلی ثبت نشده است"}
+          </div>
         </div>
       ) : (
-        <div></div>
+        <div />
       )}
 
       {/* Messages Section */}
@@ -200,28 +276,40 @@ function TicketDetailPage() {
             پیام‌ها
           </h2>
           <span className="text-sm text-slate-500 dark:text-slate-400">
-            ({messages.length})
+            ({visibleMessages.length})
           </span>
+          <button
+            type="button"
+            onClick={() => fetchMessages()}
+            disabled={isRefreshingMessages}
+            className="ml-auto inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefreshingMessages ? "animate-spin" : ""}`}
+            />
+            به‌روزرسانی
+          </button>
         </div>
 
         <div className="space-y-4">
-          {messages.length === 0 ? (
+          {visibleMessages.length === 0 ? (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
               <p>هنوز پیامی ثبت نشده است</p>
             </div>
           ) : (
-            messages.map((message) => {
-              const isUserMessage = message.sender_role === "user";
+            visibleMessages.map((message) => {
+              const isCurrentUserMessage = user?.id === message.sender_id;
+              const isUserRoleMessage = message.sender_role === "user";
               return (
                 <div
                   key={message.id}
                   className={`flex gap-4 ${
-                    isUserMessage ? "flex-row-reverse" : ""
+                    isCurrentUserMessage ? "flex-row-reverse" : ""
                   }`}
                 >
                   <div
                     className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
-                      isUserMessage
+                      isCurrentUserMessage
                         ? "bg-indigo-500 text-white"
                         : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
                     }`}
@@ -230,7 +318,7 @@ function TicketDetailPage() {
                   </div>
                   <div
                     className={`flex-1 space-y-2 ${
-                      isUserMessage ? "text-right" : ""
+                      isCurrentUserMessage ? "text-right" : ""
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -240,10 +328,16 @@ function TicketDetailPage() {
                       <span className="text-xs text-slate-400 dark:text-slate-500">
                         {new Date(message.created_at).toLocaleString("fa-IR")}
                       </span>
+                      {message.is_internal && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                          <Shield className="h-3 w-3" />
+                          داخلی
+                        </span>
+                      )}
                     </div>
                     <div
                       className={`rounded-2xl p-4 ${
-                        isUserMessage
+                        isUserRoleMessage
                           ? "bg-indigo-50 text-slate-900 dark:bg-indigo-500/20 dark:text-white"
                           : "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white"
                       }`}
@@ -273,7 +367,7 @@ function TicketDetailPage() {
         </div>
 
         {/* Reply Form */}
-        {ticket.status !== "بسته شده" && (
+        {(ticket.status !== "بسته شده" || isStaffUser) && (
           <form
             onSubmit={handleSendMessage}
             className="mt-6 space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800"
@@ -294,13 +388,32 @@ function TicketDetailPage() {
                 placeholder="پیام خود را اینجا بنویسید..."
               />
             </div>
+
+            {isStaffUser && (
+              <div className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-slate-50/60 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold">ثبت به عنوان یادداشت داخلی</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    یادداشت‌های داخلی برای کاربران نهایی نمایش داده نمی‌شوند.
+                  </span>
+                </div>
+                <ToggleButton
+                  size="sm"
+                  checked={isInternalNote}
+                  onChange={setIsInternalNote}
+                  ariaLabel="یادداشت داخلی"
+                />
+              </div>
+            )}
+
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                disabled
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-400 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500"
               >
                 <Paperclip className="h-4 w-4" />
-                افزودن فایل
+                افزودن فایل (به‌زودی)
               </button>
               <button
                 type="submit"
@@ -314,7 +427,7 @@ function TicketDetailPage() {
           </form>
         )}
 
-        {ticket.status === "بسته شده" && (
+        {ticket.status === "بسته شده" && !isStaffUser && (
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-800">
             <p className="text-sm text-slate-600 dark:text-slate-300">
               این تیکت بسته شده است و امکان ارسال پیام جدید وجود ندارد.
@@ -325,3 +438,5 @@ function TicketDetailPage() {
     </div>
   );
 }
+
+export default TicketDetailPage;
