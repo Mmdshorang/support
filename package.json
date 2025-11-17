@@ -1,0 +1,19 @@
+{
+  "name": "support",
+  "version": "1.0.0",
+  "description": "Support System - Full Stack Application",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd support-app && npm run dev",
+    "dev:backend": "cd support-backend && npm run dev",
+    "install:all": "npm install && cd support-app && npm install && cd ../support-backend && npm install",
+    "build:frontend": "cd support-app && npm run build",
+    "start:backend": "cd support-backend && npm start",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
