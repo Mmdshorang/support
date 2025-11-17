@@ -25,6 +25,20 @@ export const getMessages = async (req, res, next) => {
       });
     }
 
+    const readColumn =
+      req.user.role === "user"
+        ? "last_user_read_at"
+        : req.user.role === "admin" || req.user.role === "support"
+        ? "last_admin_read_at"
+        : null;
+
+    if (readColumn) {
+      await query(
+        `UPDATE tickets SET ${readColumn} = CURRENT_TIMESTAMP WHERE id = $1`,
+        [ticketId]
+      );
+    }
+
     // Get messages
     const result = await query(
       `SELECT

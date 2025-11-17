@@ -6,6 +6,30 @@ import { User, Lock } from "lucide-react";
 import { userAtom } from "../../stores/auth";
 import { authApi } from "../../services/api/auth";
 
+type ApiErrorResponse = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
+const getErrorMessage = (error: unknown) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof (error as ApiErrorResponse).response === "object"
+  ) {
+    const apiError = error as ApiErrorResponse;
+    const message = apiError.response?.data?.message;
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
+    }
+  }
+  return "خطای غیرمنتظره رخ داد";
+};
+
 export const Route = createFileRoute("/_user/settings")({
   component: UserSettingsPage,
 });
@@ -37,9 +61,9 @@ function UserSettingsPage() {
       setIsUpdatingProfile(true);
       await authApi.updateDetails(profileForm);
       toast.success("اطلاعات پروفایل با موفقیت بروزرسانی شد");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating profile:", error);
-      toast.error(error?.response?.data?.message || "خطا در بروزرسانی اطلاعات");
+      toast.error(getErrorMessage(error) || "خطا در بروزرسانی اطلاعات");
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -70,9 +94,9 @@ function UserSettingsPage() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating password:", error);
-      toast.error(error?.response?.data?.message || "خطا در تغییر رمز عبور");
+      toast.error(getErrorMessage(error) || "خطا در تغییر رمز عبور");
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -124,7 +148,9 @@ function UserSettingsPage() {
                   <input
                     type="text"
                     value={profileForm.name}
-                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({ ...profileForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                   />
                 </div>
@@ -151,7 +177,9 @@ function UserSettingsPage() {
                   <input
                     type="email"
                     value={profileForm.email}
-                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({ ...profileForm, email: e.target.value })
+                    }
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                   />
                 </div>
@@ -164,7 +192,9 @@ function UserSettingsPage() {
                     type="tel"
                     dir="ltr"
                     value={profileForm.phone}
-                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({ ...profileForm, phone: e.target.value })
+                    }
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                   />
                 </div>
@@ -193,7 +223,12 @@ function UserSettingsPage() {
                   <input
                     type="password"
                     value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        currentPassword: e.target.value,
+                      })
+                    }
                     required
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                   />
@@ -206,7 +241,12 @@ function UserSettingsPage() {
                   <input
                     type="password"
                     value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        newPassword: e.target.value,
+                      })
+                    }
                     required
                     minLength={6}
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
@@ -220,7 +260,12 @@ function UserSettingsPage() {
                   <input
                     type="password"
                     value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                     required
                     minLength={6}
                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
@@ -232,7 +277,9 @@ function UserSettingsPage() {
                   disabled={isUpdatingPassword}
                   className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isUpdatingPassword ? "در حال تغییر رمز عبور..." : "تغییر رمز عبور"}
+                  {isUpdatingPassword
+                    ? "در حال تغییر رمز عبور..."
+                    : "تغییر رمز عبور"}
                 </button>
               </form>
             </div>

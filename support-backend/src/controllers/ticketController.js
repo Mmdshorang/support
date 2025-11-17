@@ -1,5 +1,8 @@
 import { query } from "../config/database.js";
 
+const normalizeSupportType = (value) =>
+  value === "inPerson" ? "inPerson" : "remote";
+
 // @desc    Get all tickets
 // @route   GET /api/tickets
 // @access  Private
@@ -78,11 +81,11 @@ export const getTickets = async (req, res, next) => {
         (SELECT COUNT(*) FROM ticket_messages
          WHERE ticket_id = t.id
          AND sender_id != t.user_id
-         AND created_at > COALESCE(
-           (SELECT MAX(created_at) FROM ticket_messages
-            WHERE ticket_id = t.id AND sender_id = t.user_id),
-           '1970-01-01'
-         )) as unread_count
+         AND created_at > COALESCE(t.last_user_read_at, '1970-01-01')) as user_unread_count,
+        (SELECT COUNT(*) FROM ticket_messages
+         WHERE ticket_id = t.id
+         AND sender_id = t.user_id
+         AND created_at > COALESCE(t.last_admin_read_at, '1970-01-01')) as admin_unread_count
        FROM tickets t
        LEFT JOIN users u ON t.user_id = u.id
        LEFT JOIN customers c ON t.customer_id = c.id
@@ -168,11 +171,11 @@ export const getTicket = async (req, res, next) => {
 // @access  Private
 export const createTicket = async (req, res, next) => {
   try {
-    const { subject, description, category_id, customer_id, channel } =
+    const { subject, description, category_id, customer_id, support_type } =
       req.body;
 
     const result = await query(
-      `INSERT INTO tickets (subject, description, category_id, user_id, customer_id, channel)
+      `INSERT INTO tickets (subject, description, category_id, user_id, customer_id, support_type)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
@@ -181,7 +184,7 @@ export const createTicket = async (req, res, next) => {
         category_id || null,
         req.user.id,
         customer_id || null,
-        channel || "وب",
+        normalizeSupportType(support_type),
       ]
     );
 
@@ -208,8 +211,15 @@ export const createTicket = async (req, res, next) => {
 export const updateTicket = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { subject, description, category_id, status, assigned_to, solution } =
-      req.body;
+    const {
+      subject,
+      description,
+      category_id,
+      status,
+      assigned_to,
+      solution,
+      support_type,
+    } = req.body;
 
     // Check if ticket exists and user has permission
     let checkQuery = "SELECT * FROM tickets WHERE id = $1";
@@ -251,9 +261,18 @@ export const updateTicket = async (req, res, next) => {
       paramCount++;
     }
 
-    if (solution) {
+    if (solution !== undefined) {
       fieldsToUpdate.push(`solution = $${paramCount}`);
       values.push(solution);
+      paramCount++;
+    }
+
+    if (
+      (req.user.role === "admin" || req.user.role === "support") &&
+      support_type
+    ) {
+      fieldsToUpdate.push(`support_type = $${paramCount}`);
+      values.push(normalizeSupportType(support_type));
       paramCount++;
     }
 

@@ -6,6 +6,8 @@ export type TicketStatus =
   | "پاسخ داده شده"
   | "بسته شده";
 
+export type SupportType = "remote" | "inPerson";
+
 export interface Ticket {
   id: number;
   subject: string;
@@ -26,10 +28,10 @@ export interface Ticket {
   owner_phone?: string;
   user_name?: string;
   user_phone?: string;
-  unread_count?: number;
+  user_unread_count?: number;
+  admin_unread_count?: number;
   last_message?: string;
-  channel?: string;
-  typeSupport?: "inPerson" | "remote";
+  support_type?: SupportType;
   solution?: string;
 }
 
@@ -65,12 +67,6 @@ export interface TicketStats {
     answered: number;
     closed: number;
   };
-  by_priority: {
-    low: number;
-    medium: number;
-    high: number;
-    critical: number;
-  };
 }
 
 export interface CreateTicketData {
@@ -78,7 +74,7 @@ export interface CreateTicketData {
   description: string;
   category_id?: string;
   customer_id?: string;
-  channel?: string;
+  support_type?: SupportType;
 }
 
 export interface UpdateTicketData {
@@ -87,6 +83,7 @@ export interface UpdateTicketData {
   status?: TicketStatus;
   assigned_to?: string;
   solution?: string;
+  support_type?: SupportType;
 }
 
 export interface TicketFilters {

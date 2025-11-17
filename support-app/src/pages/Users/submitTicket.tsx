@@ -1,29 +1,32 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "@tanstack/react-router";
+import { useAtomValue } from "jotai";
 import SelectBox, { type Option } from "../../components/common/SelectBox";
 import { ticketsApi } from "../../services/api/tickets";
 import { categoriesApi } from "../../services/api/categories";
+import { customersApi } from "../../services/api/customers";
+import { userAtom } from "../../stores/auth";
 
 interface UserTicketForm {
   description: string;
-  subject: string;
-  name: string;
-  phone: string;
 }
 
 export default function UserSubmitTicketPage() {
   const navigate = useNavigate();
+  const user = useAtomValue(userAtom);
+  const isRegularUser = user?.role === "user";
+  const isStaffUser = user?.role === "admin" || user?.role === "support";
   const [categories, setCategories] = useState<Option[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Option | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState<UserTicketForm>({
     description: "",
-    subject: "",
-    name: "",
-    phone: "",
   });
+  const [customerOptions, setCustomerOptions] = useState<Option[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Option | null>(null);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
 
   // Fetch categories from API
   useEffect(() => {
@@ -52,14 +55,79 @@ export default function UserSubmitTicketPage() {
     fetchCategories();
   }, []);
 
-  const handleChange = (field: keyof UserTicketForm) => (value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  // Fetch customers for admin/support users
+  useEffect(() => {
+    if (!isStaffUser) return;
+
+    let isMounted = true;
+
+    const fetchCustomers = async () => {
+      try {
+        setIsLoadingCustomers(true);
+        const response = await customersApi.getCustomers({
+          limit: 200,
+          sortBy: "name",
+          sortOrder: "asc",
+        });
+        if (!isMounted) return;
+        const options = response.data.map((customer) => ({
+          value: customer.id,
+          label: `${customer.name}${
+            customer.phone ? ` - ${customer.phone}` : ""
+          }`,
+        }));
+        setCustomerOptions(options);
+      } catch (error) {
+        if (isMounted) {
+          console.error("Error fetching customers:", error);
+          toast.error("خطا در دریافت لیست مشتریان");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCustomers(false);
+        }
+      }
+    };
+
+    fetchCustomers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isStaffUser]);
+
+  const handleDescriptionChange = (value: string) =>
+    setForm((prev) => ({ ...prev, description: value }));
+
+  const buildSubject = () => {
+    const base =
+      (isStaffUser && selectedCustomer?.label) ||
+      user?.name ||
+      user?.username ||
+      "تیکت جدید";
+    return selectedCategory ? `${selectedCategory.label} - ${base}` : base;
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!user) {
+      toast.error("ابتدا وارد حساب کاربری خود شوید");
+      return;
+    }
+
     if (!selectedCategory) {
       toast.error("لطفا دسته‌بندی را انتخاب کنید");
+      return;
+    }
+
+    if (isStaffUser && !selectedCustomer) {
+      toast.error("لطفاً یک مشتری را انتخاب کنید");
+      return;
+    }
+
+    if (!form.description.trim()) {
+      toast.error("شرح مشکل نمی‌تواند خالی باشد");
       return;
     }
 
@@ -67,10 +135,10 @@ export default function UserSubmitTicketPage() {
       setIsSubmitting(true);
 
       await ticketsApi.createTicket({
-        subject: `${form.name} - ${form.phone}`,
+        subject: buildSubject(),
         description: form.description,
         category_id: selectedCategory.value,
-        channel: "وب",
+        customer_id: isStaffUser ? selectedCustomer?.value : undefined,
       });
 
       toast.success("تیکت با موفقیت ثبت شد");
@@ -78,10 +146,10 @@ export default function UserSubmitTicketPage() {
       // Reset form
       setForm({
         description: "",
-        subject: "",
-        name: "",
-        phone: "",
       });
+      if (isStaffUser) {
+        setSelectedCustomer(null);
+      }
 
       // Navigate to dashboard after 1 second
       setTimeout(() => {
@@ -110,49 +178,42 @@ export default function UserSubmitTicketPage() {
         onSubmit={handleSubmit}
         className="space-y-5 rounded-3xl border border-slate-200/80 bg-white/100 p-6 shadow-sm transition dark:border-slate-800/60 dark:bg-slate-900/70"
       >
-        {/* <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            عنوان تیکت
-          </label>
-          <input
-            type="text"
-            required
-            value={form.subject}
-            onChange={(e) =>
-              handleChange("subject")(e.target.value)
-            }
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-            placeholder="مثلاً: مشکل در ورود به سیستم"
-          />
-        </div> */}
-        <div className="sm:flex gap-5">
-          <div className="flex gap-3">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
-              نام و نام خانوادگی :
+        {isStaffUser && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              انتخاب مشتری
             </label>
-
-            <input
-              type="text"
-              required
-              value={form.name}
-              onChange={(e) => handleChange("name")(e.target.value)}
-              className=" rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-            />
+            {isLoadingCustomers ? (
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+                در حال بارگذاری لیست مشتریان...
+              </div>
+            ) : (
+              <SelectBox
+                options={customerOptions}
+                value={selectedCustomer}
+                onChange={(value) => setSelectedCustomer(value as Option)}
+                placeholder="یک مشتری انتخاب کنید"
+                searchable
+                multiple={false}
+                creatable={false}
+              />
+            )}
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              لطفاً مشتری مربوطه را انتخاب کنید تا اطلاعات او به صورت خودکار
+              در تیکت ثبت شود.
+            </p>
           </div>
-          <div className="flex gap-3 mt-3 lg:mt-0">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
-              شماره تماس :
-            </label>
+        )}
 
-            <input
-              type="text"
-              required
-              value={form.phone}
-              onChange={(e) => handleChange("phone")(e.target.value)}
-              className=" rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-            />
+        {isRegularUser && user && (
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+            اطلاعات پروفایل شما (
+            {user.name || user.username || "کاربر"}{" "}
+            {user.phone ? `- ${user.phone}` : ""}) به صورت خودکار به تیکت
+            اضافه می‌شود.
           </div>
-        </div>
+        )}
 
         <div className="flex gap-3 space-y-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
@@ -184,7 +245,7 @@ export default function UserSubmitTicketPage() {
             required
             minLength={10}
             value={form.description}
-            onChange={(e) => handleChange("description")(e.target.value)}
+            onChange={(e) => handleDescriptionChange(e.target.value)}
             className="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             placeholder="به صورت خلاصه توضیح دهید چه اتفاقی رخ داده است..."
           />

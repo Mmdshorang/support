@@ -11,7 +11,7 @@ interface Ticket {
   phone: string;
   problem: string;
   solution: string;
-  typeSupport: "inPerson" | "remote";
+  supportType: "inPerson" | "remote";
   status: "open" | "closed";
   date: string;
 }
@@ -33,7 +33,7 @@ const STATUS_LABELS: Record<
 };
 
 const TYPE_LABELS: Record<
-  Ticket["typeSupport"],
+  Ticket["supportType"],
   { label: string; badge: string }
 > = {
   inPerson: {
@@ -68,10 +68,14 @@ export default function TicketReport() {
         const mappedTickets: Ticket[] = response.data.map((ticket: ApiTicket) => ({
           id: ticket.id,
           name: ticket.customer || ticket.owner || "مشتری",
-          phone: "-", // Phone is not directly available in the API response
+          phone:
+            ticket.customer_phone ||
+            ticket.owner_phone ||
+            ticket.user_phone ||
+            "نامشخص",
           problem: ticket.subject,
-          solution: ticket.description || "-",
-          typeSupport: ticket.channel === "ایمیل" || ticket.channel === "وب" ? "remote" : "inPerson",
+          solution: ticket.solution || ticket.description || "-",
+          supportType: ticket.support_type === "inPerson" ? "inPerson" : "remote",
           status: ticket.status === "بسته شده" ? "closed" : "open",
           date: moment(ticket.created_at).locale("fa").format("jYYYY/jMM/jDD"),
         }));
@@ -237,10 +241,10 @@ export default function TicketReport() {
                     <td className="px-3 py-4">
                       <span
                         className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${
-                          TYPE_LABELS[ticket.typeSupport].badge
+                          TYPE_LABELS[ticket.supportType].badge
                         }`}
                       >
-                        {TYPE_LABELS[ticket.typeSupport].label}
+                        {TYPE_LABELS[ticket.supportType].label}
                       </span>
                     </td>
                     <td className="px-3 py-4">

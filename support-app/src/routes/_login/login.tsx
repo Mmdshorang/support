@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useSetAtom } from "jotai";
 import { toast } from "react-toastify";
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/_login/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const setUser = useSetAtom(userAtom);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
