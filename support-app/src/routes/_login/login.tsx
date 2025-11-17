@@ -27,7 +27,7 @@ function LoginPage() {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.error("لطفاً ایمیل و رمز عبور را وارد کنید");
+      toast.error("لطفاً نام کاربری و رمز عبور را وارد کنید");
       return;
     }
 
@@ -37,7 +37,6 @@ function LoginPage() {
       const response = await authApi.login({ email, password });
 
       if (response.success && response.data) {
-        // Save user in store
         setUser(response.data.user);
 
         // Show success message
@@ -78,17 +77,16 @@ function LoginPage() {
               htmlFor="email"
               className="block text-sm font-medium text-white/90 mb-2"
             >
-              ایمیل
+              نام کاربری
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="username"
+              name="username"
+              type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/60 focus:bg-white/30 transition"
-              placeholder="example@email.com"
               disabled={isLoading}
             />
           </div>

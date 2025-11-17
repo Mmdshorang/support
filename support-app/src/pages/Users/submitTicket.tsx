@@ -8,6 +8,8 @@ import { categoriesApi } from "../../services/api/categories";
 interface UserTicketForm {
   description: string;
   subject: string;
+  name: string;
+  phone: string;
 }
 
 export default function UserSubmitTicketPage() {
@@ -19,6 +21,8 @@ export default function UserSubmitTicketPage() {
   const [form, setForm] = useState<UserTicketForm>({
     description: "",
     subject: "",
+    name: "",
+    phone: "",
   });
 
   // Fetch categories from API
@@ -28,8 +32,8 @@ export default function UserSubmitTicketPage() {
         setIsLoadingCategories(true);
         const response = await categoriesApi.getCategories();
         const categoryOptions: Option[] = response.data
-          .filter(cat => cat.is_active)
-          .map(cat => ({
+          .filter((cat) => cat.is_active)
+          .map((cat) => ({
             value: cat.id,
             label: cat.name,
           }));
@@ -76,6 +80,8 @@ export default function UserSubmitTicketPage() {
       setForm({
         description: "",
         subject: "",
+        name: "",
+        phone: "",
       });
 
       // Navigate to dashboard after 1 second
@@ -94,7 +100,7 @@ export default function UserSubmitTicketPage() {
     <div className="space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          ثبت تیکت پشتیبانی
+          ثبت مشکل
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-300">
           لطفاً اطلاعات مورد نیاز را وارد کنید تا تیم پشتیبانی بررسی کند.
@@ -103,9 +109,9 @@ export default function UserSubmitTicketPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-5 rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm transition dark:border-slate-800/60 dark:bg-slate-900/70"
+        className="space-y-5 rounded-3xl border border-slate-200/80 bg-white/100 p-6 shadow-sm transition dark:border-slate-800/60 dark:bg-slate-900/70"
       >
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
             عنوان تیکت
           </label>
@@ -119,12 +125,40 @@ export default function UserSubmitTicketPage() {
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             placeholder="مثلاً: مشکل در ورود به سیستم"
           />
+        </div> */}
+        <div className="sm:flex gap-5">
+          <div className="flex gap-3">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
+              نام و نام خانوادگی :
+            </label>
+
+            <input
+              type="text"
+              required
+              value={form.subject}
+              onChange={(e) => handleChange("name")(e.target.value)}
+              className=" rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+          <div className="flex gap-3 mt-3 lg:mt-0">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
+              شماره تماس :
+            </label>
+
+            <input
+              type="text"
+              required
+              value={form.subject}
+              onChange={(e) => handleChange("phone")(e.target.value)}
+              className=" rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            دسته‌بندی
-          </label>
+        <div className="flex gap-3 space-y-2">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
+            دسته‌بندی مشکل :
+          </span>
           {isLoadingCategories ? (
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
@@ -143,17 +177,15 @@ export default function UserSubmitTicketPage() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            شرح مشکل
+        <div className="lg:flex  gap-3 space-y-2">
+          <label className="w-[9%] text-sm font-medium text-slate-700 dark:text-slate-200">
+            شرح مشکل :
           </label>
           <textarea
             required
             minLength={10}
             value={form.description}
-            onChange={(e) =>
-              handleChange("description")(e.target.value)
-            }
+            onChange={(e) => handleChange("description")(e.target.value)}
             className="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             placeholder="به صورت خلاصه توضیح دهید چه اتفاقی رخ داده است..."
           />
@@ -163,7 +195,7 @@ export default function UserSubmitTicketPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-[50%] items-center justify-center gap-3 rounded-2xl bg-gradient-to-l from-indigo-600 via-purple-600 to-rose-500 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-[50%] items-center justify-center gap-3 rounded-2xl bg-indigo-600  px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <>

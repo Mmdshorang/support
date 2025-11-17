@@ -107,9 +107,6 @@ export default function TicketReport() {
     });
   }, [tickets, search, fromDate, toDate]);
 
-  const totalOpen = filteredTickets.filter(
-    (ticket) => ticket.status === "open"
-  ).length;
 
   return (
     <div className="space-y-8">
@@ -117,45 +114,7 @@ export default function TicketReport() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
           گزارش تحلیلی تیکت‌ها
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">
-          بازبینی روند درخواست‌ها، مقایسه کانال‌های پشتیبانی و استخراج شاخص‌های
-          کلیدی عملکرد برای جلسات مدیریتی.
-        </p>
       </header>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">
-            تیکت‌های باز
-          </p>
-          <p className="mt-3 text-3xl font-black text-amber-500">{totalOpen}</p>
-          <p className="mt-2 text-xs text-slate-400 dark:text-slate-400">
-            در بازه انتخاب‌شده
-          </p>
-        </div>
-        <div className="rounded-3xl border border-emerald-200/70 bg-emerald-50/60 p-5 shadow-sm dark:border-emerald-500/20 dark:bg-emerald-500/15">
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-200">
-            میانگین زمان رسیدگی
-          </p>
-          <p className="mt-3 text-3xl font-black text-emerald-600 dark:text-emerald-200">
-            ۲ ساعت
-          </p>
-          <p className="mt-2 text-xs text-emerald-500/80 dark:text-emerald-200/80">
-            ۴۰٪ سریع‌تر از هفته قبل
-          </p>
-        </div>
-        <div className="rounded-3xl border border-indigo-200/60 bg-indigo-50/60 p-5 shadow-sm dark:border-indigo-500/20 dark:bg-indigo-500/15">
-          <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-200">
-            کانال غالب
-          </p>
-          <p className="mt-3 text-3xl font-black text-indigo-600 dark:text-indigo-100">
-            پرتال وب
-          </p>
-          <p className="mt-2 text-xs text-indigo-500/80 dark:text-indigo-200/80">
-            ۶۵٪ درخواست‌ها
-          </p>
-        </div>
-      </section>
 
       <section className="space-y-5 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -261,9 +220,6 @@ export default function TicketReport() {
                       <div className="space-y-1">
                         <p className="text-sm font-semibold text-slate-800 dark:text-white">
                           {ticket.name}
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-300">
-                          ارزش بالا
                         </p>
                       </div>
                     </td>

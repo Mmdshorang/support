@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { categoriesApi } from "../services/api/categories";
-import type { Category } from "../services/api/categories";
+import { categoriesApi } from "../../services/api/categories";
+import type { Category } from "../../services/api/categories";
 
 interface Issue {
 	id: string;
@@ -11,13 +11,6 @@ interface Issue {
 	description?: string;
 	is_active: boolean;
 }
-
-const CATEGORY_COLORS: Record<Issue["category"], string> = {
-	زیرساخت: "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200",
-	کاربری: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
-	گزارش: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200",
-	سایر: "bg-slate-200 text-slate-700 dark:bg-slate-700/50 dark:text-slate-200",
-};
 
 export default function IssuesList() {
 	const [issues, setIssues] = useState<Issue[]>([]);
@@ -38,8 +31,8 @@ export default function IssuesList() {
 				const mappedIssues: Issue[] = response.data.map((cat: Category) => ({
 					id: cat.id,
 					type: cat.name,
-					category: mapCategoryType(cat.name),
-					activeTickets: 0, // این از API نمی‌آید، باید جداگانه محاسبه شود
+					category:"سایر",
+					activeTickets: 0, 
 					description: cat.description,
 					is_active: cat.is_active,
 				}));
@@ -56,13 +49,6 @@ export default function IssuesList() {
 		fetchCategories();
 	}, []);
 
-	// Helper function to map category name to type
-	const mapCategoryType = (name: string): Issue["category"] => {
-		if (name.includes("زیرساخت") || name.includes("سرور") || name.includes("شبکه")) return "زیرساخت";
-		if (name.includes("کاربر") || name.includes("ورود") || name.includes("احراز")) return "کاربری";
-		if (name.includes("گزارش") || name.includes("داشبورد")) return "گزارش";
-		return "سایر";
-	};
 
 	const stats = useMemo(() => {
 		const total = issues.length;
@@ -180,16 +166,6 @@ export default function IssuesList() {
 						className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
 						placeholder="مثال: خطای همگام‌سازی حسابداری"
 					/>
-					<select
-						value={newCategory}
-						onChange={(event) => setNewCategory(event.target.value as Issue["category"])}
-						className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
-					>
-						<option value="کاربری">کاربری</option>
-						<option value="زیرساخت">زیرساخت</option>
-						<option value="گزارش">گزارش</option>
-						<option value="سایر">سایر</option>
-					</select>
 					<button
 						onClick={handleAddIssue}
 						className="rounded-2xl bg-gradient-to-l from-indigo-600 via-purple-600 to-rose-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-500/70"
@@ -211,7 +187,6 @@ export default function IssuesList() {
 							<tr className="text-right text-xs font-semibold text-slate-500 dark:text-slate-300">
 								<th className="rounded-r-xl bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">ردیف</th>
 								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">عنوان مشکل</th>
-								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">دسته</th>
 								<th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">تیکت‌های فعال</th>
 								<th className="rounded-l-xl bg-slate-100/70 px-3 py-2 text-center dark:bg-slate-800/70">عملیات</th>
 							</tr>
@@ -245,11 +220,6 @@ export default function IssuesList() {
 										) : (
 											<span className="text-sm font-semibold text-slate-800 dark:text-white">{issue.type}</span>
 										)}
-									</td>
-									<td className="px-3 py-4">
-										<span className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${CATEGORY_COLORS[issue.category]}`}>
-											{issue.category}
-										</span>
 									</td>
 									<td className="px-3 py-4 text-xs font-semibold text-slate-500 dark:text-slate-300">{issue.activeTickets}</td>
 									<td className="rounded-l-3xl px-3 py-4">
