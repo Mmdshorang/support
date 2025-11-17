@@ -2,14 +2,15 @@ import apiClient from './client';
 import type { User } from '../../stores/auth';
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface RegisterData {
   name: string;
-  email: string;
+  username: string;
   password: string;
+  email?: string;
   role?: 'user' | 'admin' | 'support';
 }
 

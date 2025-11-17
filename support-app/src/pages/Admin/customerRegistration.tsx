@@ -24,6 +24,8 @@ export default function CustomerRegistrationForm() {
     contractTier: "standard",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [userCredentials, setUserCredentials] = useState<{username: string, password: string} | null>(null);
 
   const handleChange = (field: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -35,7 +37,7 @@ export default function CustomerRegistrationForm() {
     try {
       setIsSubmitting(true);
 
-      await customersApi.createCustomer({
+      const response = await customersApi.createCustomer({
         name: form.customerName.trim(),
         email: `${form.companyName
           .toLowerCase()
@@ -46,20 +48,25 @@ export default function CustomerRegistrationForm() {
 
       toast.success("مشتری با موفقیت ثبت شد");
 
-      // Reset form
-      setForm({
-        customerName: "",
-        customerNumber: "",
-        companyName: "",
-        contractFrom: "",
-        contractTo: "",
-        contractTier: "standard",
-      });
+      // Show credentials if available
+      if (response.data.userCredentials) {
+        setUserCredentials(response.data.userCredentials);
+        setShowCredentials(true);
+      } else {
+        // Reset form and navigate if no credentials to show
+        setForm({
+          customerName: "",
+          customerNumber: "",
+          companyName: "",
+          contractFrom: "",
+          contractTo: "",
+          contractTier: "standard",
+        });
 
-      // Navigate back to dashboard or customers list after 1 second
-      setTimeout(() => {
-        navigate({ to: "/dashboard" });
-      }, 1000);
+        setTimeout(() => {
+          navigate({ to: "/dashboard" });
+        }, 1000);
+      }
     } catch (error) {
       console.error("Error creating customer:", error);
       toast.error("خطا در ثبت مشتری");
@@ -68,8 +75,67 @@ export default function CustomerRegistrationForm() {
     }
   };
 
+  // Handle closing credentials modal
+  const handleCloseCredentials = () => {
+    setShowCredentials(false);
+    setUserCredentials(null);
+
+    // Reset form
+    setForm({
+      customerName: "",
+      customerNumber: "",
+      companyName: "",
+      contractFrom: "",
+      contractTo: "",
+      contractTier: "standard",
+    });
+
+    // Navigate to dashboard
+    navigate({ to: "/dashboard" });
+  };
+
   return (
     <div className="space-y-8">
+      {/* Credentials Modal */}
+      {showCredentials && userCredentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              اطلاعات ورود مشتری
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              لطفاً این اطلاعات را به مشتری تحویل دهید:
+            </p>
+
+            <div className="space-y-4 bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 mb-6">
+              <div>
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  نام کاربری
+                </label>
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-1 font-mono">
+                  {userCredentials.username}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  رمز عبور
+                </label>
+                <p className="text-lg font-bold text-slate-900 dark:text-white mt-1 font-mono">
+                  {userCredentials.password}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleCloseCredentials}
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition"
+            >
+              متوجه شدم
+            </button>
+          </div>
+        </div>
+      )}
+
       <header className="space-y-2">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
           ثبت مشتری جدید

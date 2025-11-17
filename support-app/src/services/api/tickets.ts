@@ -67,21 +67,20 @@ export interface CreateTicketData {
   subject: string;
   description: string;
   category_id?: string;
-  priority: TicketPriority;
   customer_id?: string;
+  channel?: string;
 }
 
 export interface UpdateTicketData {
   subject?: string;
   description?: string;
-  priority?: TicketPriority;
   status?: TicketStatus;
   assigned_to?: string;
+  solution?: string;
 }
 
 export interface TicketFilters {
   status?: string;
-  priority?: string;
   category?: string;
   search?: string;
   page?: number;

@@ -67,10 +67,9 @@ export default function UserSubmitTicketPage() {
       setIsSubmitting(true);
 
       await ticketsApi.createTicket({
-        subject: form.subject,
+        subject: `${form.name} - ${form.phone}`,
         description: form.description,
         category_id: selectedCategory.value,
-        priority: "متوسط",
         channel: "وب",
       });
 
@@ -135,7 +134,7 @@ export default function UserSubmitTicketPage() {
             <input
               type="text"
               required
-              value={form.subject}
+              value={form.name}
               onChange={(e) => handleChange("name")(e.target.value)}
               className=" rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             />
@@ -148,7 +147,7 @@ export default function UserSubmitTicketPage() {
             <input
               type="text"
               required
-              value={form.subject}
+              value={form.phone}
               onChange={(e) => handleChange("phone")(e.target.value)}
               className=" rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             />

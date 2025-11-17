@@ -6,9 +6,11 @@ export type UserRole = "admin" | "user" | "support";
 export interface User {
 	id: string;
 	name: string;
-	email: string;
+	username?: string;
+	email?: string;
 	role: UserRole;
 	avatar?: string;
+	phone?: string;
 }
 
 const storage =

@@ -116,6 +116,13 @@ const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
       title: "گزارش‌های تحلیلی",
     },
   },
+  {
+    pattern: /^\/settings/,
+    meta: {
+      title: "تنظیمات",
+      subtitle: "مدیریت پروفایل، امنیت و تنظیمات حساب کاربری",
+    },
+  },
 ];
 
 const getPageMeta = (pathname: string): PageMeta => {

@@ -10,7 +10,9 @@
       "Bash(dir /B /S)",
       "Bash(curl:*)",
       "Bash(findstr:*)",
-      "Bash(src/server.js)"
+      "Bash(src/server.js)",
+      "Bash(dir /B c:UsersmmdskDesktopsupportsupport-appsrc)",
+      "Bash(node src/database/runMigration.js:*)"
     ],
     "deny": [],
     "ask": []

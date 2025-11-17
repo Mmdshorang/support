@@ -14,17 +14,17 @@ const generateToken = (id) => {
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role = "user" } = req.body;
+    const { name, username, password, role = "user", email } = req.body;
 
-    // Check if user exists
-    const existingUser = await query("SELECT id FROM users WHERE email = $1", [
-      email,
+    // Check if user exists with this username
+    const existingUser = await query("SELECT id FROM users WHERE username = $1", [
+      username,
     ]);
 
     if (existingUser.rows.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "کاربر با این ایمیل قبلاً ثبت‌نام کرده است",
+        message: "کاربر با این نام کاربری قبلاً ثبت‌نام کرده است",
       });
     }
 
@@ -34,10 +34,10 @@ export const register = async (req, res, next) => {
 
     // Create user
     const result = await query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email, role, avatar, created_at`,
-      [name, email, hashedPassword, role]
+      `INSERT INTO users (name, username, email, password, role)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, username, email, role, avatar, created_at`,
+      [name, username, email || null, hashedPassword, role]
     );
 
     const user = result.rows[0];
@@ -63,27 +63,26 @@ export const register = async (req, res, next) => {
 // @access  Public
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    // Validate email & password
-    if (!email || !password) {
+    // Validate username & password
+    if (!username || !password) {
       return res.status(400).json({
         success: false,
-        message: "لطفاً ایمیل و رمز عبور را وارد کنید",
+        message: "لطفاً نام کاربری و رمز عبور را وارد کنید",
       });
     }
 
-    // Check for user
+    // Check for user by username
     const result = await query(
-      "SELECT * FROM users WHERE email = $1 AND is_active = true",
-      [email]
+      "SELECT * FROM users WHERE username = $1 AND is_active = true",
+      [username]
     );
-    console.log(result);
 
     if (result.rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "ایمیل یا رمز عبور اشتباه است",
+        message: "نام کاربری یا رمز عبور اشتباه است",
       });
     }
 
@@ -95,7 +94,7 @@ export const login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "ایمیل یا رمز عبور اشتباه است",
+        message: "نام کاربری یا رمز عبور اشتباه است",
       });
     }
 
@@ -124,7 +123,7 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
   try {
     const result = await query(
-      "SELECT id, name, email, role, avatar, phone, created_at FROM users WHERE id = $1",
+      "SELECT id, name, username, email, role, avatar, phone, created_at FROM users WHERE id = $1",
       [req.user.id]
     );
 

@@ -16,6 +16,7 @@ import { Route as UserUserDashboardRouteImport } from './routes/_user/user-dashb
 import { Route as UserNewTicketRouteImport } from './routes/_user/new-ticket'
 import { Route as LoginLogoutRouteImport } from './routes/_login/logout'
 import { Route as LoginLoginRouteImport } from './routes/_login/login'
+import { Route as AdminSettingsRouteImport } from './routes/_admin/settings'
 import { Route as UserTicketsTicketIdRouteImport } from './routes/_user/tickets/$ticketId'
 import { Route as UserSubmitTicketSubmitTicketRouteImport } from './routes/_user/_submitTicket/submitTicket'
 import { Route as AdminStatusTicketStatusTicketRouteImport } from './routes/_admin/_statusTicket/statusTicket'
@@ -57,6 +58,11 @@ const LoginLogoutRoute = LoginLogoutRouteImport.update({
 const LoginLoginRoute = LoginLoginRouteImport.update({
   id: '/_login/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/_admin/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserTicketsTicketIdRoute = UserTicketsTicketIdRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/settings': typeof AdminSettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/settings': typeof AdminSettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/_admin/settings': typeof AdminSettingsRoute
   '/_login/login': typeof LoginLoginRoute
   '/_login/logout': typeof LoginLogoutRoute
   '/_user/new-ticket': typeof UserNewTicketRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
+    | '/settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
+    | '/settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
+    | '/_admin/settings'
     | '/_login/login'
     | '/_login/logout'
     | '/_user/new-ticket'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   HelpRoute: typeof HelpRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   LoginLoginRoute: typeof LoginLoginRoute
   LoginLogoutRoute: typeof LoginLogoutRoute
   UserNewTicketRoute: typeof UserNewTicketRoute
@@ -267,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_admin/settings': {
+      id: '/_admin/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_user/tickets/$ticketId': {
       id: '/_user/tickets/$ticketId'
       path: '/tickets/$ticketId'
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   HelpRoute: HelpRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   LoginLoginRoute: LoginLoginRoute,
   LoginLogoutRoute: LoginLogoutRoute,
   UserNewTicketRoute: UserNewTicketRoute,

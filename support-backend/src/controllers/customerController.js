@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import bcrypt from 'bcryptjs';
 
 // @desc    Get all customers
 // @route   GET /api/customers
@@ -123,6 +124,7 @@ export const createCustomer = async (req, res, next) => {
       }
     }
 
+    // Create customer
     const result = await query(
       `INSERT INTO customers (name, email, phone, company, address, city, country, notes, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -140,10 +142,42 @@ export const createCustomer = async (req, res, next) => {
       ]
     );
 
+    const customer = result.rows[0];
+
+    // Generate username from customer name (remove spaces and convert to lowercase)
+    const username = name.replace(/\s+/g, '').toLowerCase();
+    const password = username; // Password is same as username
+
+    // Check if username already exists
+    const existingUser = await query(
+      'SELECT id FROM users WHERE username = $1',
+      [username]
+    );
+
+    let userCredentials = null;
+
+    if (existingUser.rows.length === 0) {
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create user account for the customer
+      await query(
+        `INSERT INTO users (name, username, email, password, role, phone)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [name, username, email || null, hashedPassword, 'user', phone || null]
+      );
+
+      userCredentials = { username, password };
+    }
+
     res.status(201).json({
       success: true,
       message: 'مشتری با موفقیت ایجاد شد',
-      data: result.rows[0],
+      data: {
+        customer: customer,
+        userCredentials: userCredentials,
+      },
     });
   } catch (error) {
     next(error);

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_login/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const setUser = useSetAtom(userAtom);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    if (!username || !password) {
       toast.error("لطفاً نام کاربری و رمز عبور را وارد کنید");
       return;
     }
@@ -34,7 +34,7 @@ function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login({ username, password });
 
       if (response.success && response.data) {
         setUser(response.data.user);
@@ -74,7 +74,7 @@ function LoginPage() {
         <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-white/90 mb-2"
             >
               نام کاربری
@@ -84,9 +84,10 @@ function LoginPage() {
               name="username"
               type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/60 focus:bg-white/30 transition"
+              placeholder="نام کاربری خود را وارد کنید"
               disabled={isLoading}
             />
           </div>
@@ -154,12 +155,12 @@ function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail("admin@hesaban.com");
+                  setUsername("admin");
                   setPassword("password123");
                 }}
                 className="text-yellow-300 hover:text-yellow-200 underline"
               >
-                admin@hesaban.com
+                admin
               </button>
             </div>
             <div className="flex justify-between">
@@ -167,12 +168,12 @@ function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail("ali@example.com");
+                  setUsername("ali");
                   setPassword("password123");
                 }}
                 className="text-yellow-300 hover:text-yellow-200 underline"
               >
-                ali@example.com
+                ali
               </button>
             </div>
             <p className="text-center mt-2 text-white/60">

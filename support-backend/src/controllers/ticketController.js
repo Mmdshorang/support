@@ -7,7 +7,6 @@ export const getTickets = async (req, res, next) => {
   try {
     const {
       status,
-      priority,
       category,
       search,
       page = 1,
@@ -32,13 +31,6 @@ export const getTickets = async (req, res, next) => {
     if (status) {
       conditions.push(`t.status = $${paramCount}`);
       values.push(status);
-      paramCount++;
-    }
-
-    // Filter by priority
-    if (priority) {
-      conditions.push(`t.priority = $${paramCount}`);
-      values.push(priority);
       paramCount++;
     }
 
@@ -168,18 +160,17 @@ export const getTicket = async (req, res, next) => {
 // @access  Private
 export const createTicket = async (req, res, next) => {
   try {
-    const { subject, description, category_id, priority, customer_id, channel } =
+    const { subject, description, category_id, customer_id, channel } =
       req.body;
 
     const result = await query(
-      `INSERT INTO tickets (subject, description, category_id, priority, user_id, customer_id, channel)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO tickets (subject, description, category_id, user_id, customer_id, channel)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
         subject,
         description,
         category_id || null,
-        priority || 'متوسط',
         req.user.id,
         customer_id || null,
         channel || 'وب',
@@ -209,7 +200,7 @@ export const createTicket = async (req, res, next) => {
 export const updateTicket = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { subject, description, category_id, priority, status, assigned_to } =
+    const { subject, description, category_id, status, assigned_to, solution } =
       req.body;
 
     // Check if ticket exists and user has permission
@@ -252,9 +243,9 @@ export const updateTicket = async (req, res, next) => {
       paramCount++;
     }
 
-    if (priority) {
-      fieldsToUpdate.push(`priority = $${paramCount}`);
-      values.push(priority);
+    if (solution) {
+      fieldsToUpdate.push(`solution = $${paramCount}`);
+      values.push(solution);
       paramCount++;
     }
 
@@ -355,11 +346,7 @@ export const getTicketStats = async (req, res, next) => {
         COUNT(*) FILTER (WHERE status = 'در انتظار') as pending,
         COUNT(*) FILTER (WHERE status = 'در حال پیگیری') as in_progress,
         COUNT(*) FILTER (WHERE status = 'پاسخ داده شده') as answered,
-        COUNT(*) FILTER (WHERE status = 'بسته شده') as closed,
-        COUNT(*) FILTER (WHERE priority = 'بحرانی') as critical,
-        COUNT(*) FILTER (WHERE priority = 'زیاد') as high,
-        COUNT(*) FILTER (WHERE priority = 'متوسط') as medium,
-        COUNT(*) FILTER (WHERE priority = 'کم') as low
+        COUNT(*) FILTER (WHERE status = 'بسته شده') as closed
        FROM tickets ${userFilter}`,
       values
     );
@@ -375,12 +362,6 @@ export const getTicketStats = async (req, res, next) => {
           in_progress: parseInt(stats.in_progress),
           answered: parseInt(stats.answered),
           closed: parseInt(stats.closed),
-        },
-        by_priority: {
-          low: parseInt(stats.low),
-          medium: parseInt(stats.medium),
-          high: parseInt(stats.high),
-          critical: parseInt(stats.critical),
         },
       },
     });
