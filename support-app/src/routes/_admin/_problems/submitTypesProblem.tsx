@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import submitTypesProblem from "../../../pages/submitTypesProblem"
+import submitTypesProblem from "../../../pages/Admin/submitTypesProblem"
 import { requireAdmin } from "../../../lib/auth-guard";
 
 export const Route = createFileRoute('/_admin/_problems/submitTypesProblem')({

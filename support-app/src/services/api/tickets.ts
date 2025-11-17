@@ -1,8 +1,6 @@
 import apiClient from './client';
 
 export type TicketStatus = "در انتظار" | "در حال پیگیری" | "پاسخ داده شده" | "بسته شده";
-export type TicketPriority = "کم" | "متوسط" | "زیاد" | "بحرانی";
-export type TicketChannel = "وب" | "تلفن" | "ایمیل" | "واتساپ";
 
 export interface Ticket {
   id: number;
@@ -10,22 +8,19 @@ export interface Ticket {
   description?: string;
   category_id?: string;
   category_name?: string;
-  priority: TicketPriority;
   status: TicketStatus;
   user_id: string;
   customer_id?: string;
-  assigned_to?: string;
-  assigned_to_name?: string;
-  channel: TicketChannel;
   created_at: string;
   updated_at: string;
   resolved_at?: string;
   closed_at?: string;
-  // For list display
   customer?: string;
   owner?: string;
   unread_count?: number;
   last_message?: string;
+  typeSupport: "inPerson" | "remote";
+  solution: string;
 }
 
 export interface TicketMessage {
@@ -73,7 +68,6 @@ export interface CreateTicketData {
   description: string;
   category_id?: string;
   priority: TicketPriority;
-  channel?: TicketChannel;
   customer_id?: string;
 }
 
