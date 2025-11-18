@@ -39,11 +39,19 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// Health check route
+// Health check routes
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Server is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'API is healthy',
     timestamp: new Date().toISOString(),
   });
 });

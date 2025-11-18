@@ -1,11 +1,24 @@
 FROM node:18-alpine
+
+# Install required tools
+RUN apk add --no-cache wget postgresql-client bash
+
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install
 
+# Install all dependencies (including devDependencies for migrations)
+RUN npm ci
+
+# Copy application code
 COPY . .
 
-EXPOSE 5000
+# Make start script executable
+RUN chmod +x start.sh
 
-CMD ["npm", "start"]
+# Expose port
+EXPOSE 2400
+
+# Start application with migration
+CMD ["./start.sh"]
