@@ -51,7 +51,7 @@ export function StatusTicketPage() {
     return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
   };
 
-const supportTypeLabel = (type: Ticket["supportType"]) =>
+  const supportTypeLabel = (type: Ticket["supportType"]) =>
     type === "inPerson" ? "حضوری" : "غیرحضوری";
 
   // Fetch tickets from API
@@ -65,34 +65,36 @@ const supportTypeLabel = (type: Ticket["supportType"]) =>
         });
 
         // Map API tickets to StatusTicket interface
-        const mappedTickets: Ticket[] = response.data.map((ticket: ApiTicket) => {
-          const supportType: Ticket["supportType"] =
-            ticket.support_type === "inPerson" ? "inPerson" : "remote";
-          const statusText = ticket.status || "نامشخص";
-          return {
-            id: ticket.id,
-            name:
-              ticket.customer ||
-              ticket.customer_name ||
-              ticket.owner ||
-              ticket.user_name ||
-              "نامشخص",
-            phone: formatPhoneNumber(
-              ticket.customer_phone || ticket.owner_phone || ticket.user_phone
-            ),
-            problem: ticket.subject || "نامشخص",
-            description: ticket.description || "توضیحی ثبت نشده است",
-            category: ticket.category_name || "نامشخص",
-            supportType,
-            status: ticket.status === "بسته شده" ? "closed" : "open",
-            statusText,
-            createdAt: moment(ticket.created_at || ticket.updated_at)
-              .locale("fa")
-              .format("jYYYY/jMM/jDD HH:mm"),
-            solution: ticket.solution || "راه‌حلی ثبت نشده است",
-            supportLabel: supportTypeLabel(supportType),
-          };
-        });
+        const mappedTickets: Ticket[] = response.data.map(
+          (ticket: ApiTicket) => {
+            const supportType: Ticket["supportType"] =
+              ticket.support_type === "inPerson" ? "inPerson" : "remote";
+            const statusText = ticket.status || "نامشخص";
+            return {
+              id: ticket.id,
+              name:
+                ticket.customer ||
+                ticket.customer_name ||
+                ticket.owner ||
+                ticket.user_name ||
+                "نامشخص",
+              phone: formatPhoneNumber(
+                ticket.customer_phone || ticket.owner_phone || ticket.user_phone
+              ),
+              problem: ticket.subject || "نامشخص",
+              description: ticket.description || "توضیحی ثبت نشده است",
+              category: ticket.category_name || "نامشخص",
+              supportType,
+              status: ticket.status === "بسته شده" ? "closed" : "open",
+              statusText,
+              createdAt: moment(ticket.created_at || ticket.updated_at)
+                .locale("fa")
+                .format("jYYYY/jMM/jDD HH:mm"),
+              solution: ticket.solution || "راه‌حلی ثبت نشده است",
+              supportLabel: supportTypeLabel(supportType),
+            };
+          }
+        );
 
         setTickets(mappedTickets);
       } catch (error) {
@@ -177,13 +179,7 @@ const supportTypeLabel = (type: Ticket["supportType"]) =>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               جدول تیکت‌ها
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-300">
-              برای ویرایش، روی ستون «نوع پشتیبانی» کلیک کنید.
-            </p>
           </div>
-          <button className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-            دریافت خروجی اکسل
-          </button>
         </div>
 
         <div className="mt-5 overflow-x-auto">
@@ -255,20 +251,18 @@ const supportTypeLabel = (type: Ticket["supportType"]) =>
                       </p>
                     </td>
                     <td className="px-3 py-4 text-xs leading-5 text-slate-600 dark:text-slate-200">
-                      <p className="font-semibold text-slate-800 dark:text-white">
-                        {ticket.problem}
-                      </p>
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+                        {ticket.category}
+                      </span>
                       <p className="mt-1 text-slate-500 dark:text-slate-300 line-clamp-2">
                         {ticket.description}
                       </p>
-                      <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
-                        {ticket.category}
-                      </span>
                     </td>
                     <td className="px-3 py-4">
                       <span
-                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${typeBadge[ticket.supportType]
-                          }`}
+                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${
+                          typeBadge[ticket.supportType]
+                        }`}
                       >
                         {supportTypeLabel(ticket.supportType)}
                       </span>
@@ -278,8 +272,9 @@ const supportTypeLabel = (type: Ticket["supportType"]) =>
                     </td>
                     <td className="px-3 py-4">
                       <span
-                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${statusBadge[ticket.status]
-                          }`}
+                        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold ${
+                          statusBadge[ticket.status]
+                        }`}
                       >
                         {ticket.statusText}
                       </span>

@@ -5,9 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { router } from "./main";
 import "./index.css";
 import { ThemeProvider } from "./components/ui/theme-provider";
-
 const queryClient = new QueryClient();
-
 export function App() {
   return (
     <ThemeProvider>

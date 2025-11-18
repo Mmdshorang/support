@@ -19,7 +19,6 @@ import {
   type SupportType,
 } from "../../../services/api/tickets";
 import { toast } from "react-toastify";
-import ToggleButton from "../../../components/common/ToggleButton";
 import { useAtomValue } from "jotai";
 import { userAtom } from "../../../stores/auth";
 
@@ -66,6 +65,8 @@ function TicketDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshingMessages, setIsRefreshingMessages] = useState(false);
+  const [solutionText, setSolutionText] = useState("");
+  const [savingSolution, setSavingSolution] = useState(false);
 
   const visibleMessages = useMemo(
     () => (isStaffUser ? messages : messages.filter((msg) => !msg.is_internal)),
@@ -94,6 +95,7 @@ function TicketDetailPage() {
         setIsLoading(true);
         const ticketRes = await ticketsApi.getTicket(Number(ticketId));
         setTicket(ticketRes.data);
+        setSolutionText(ticketRes.data.solution || "");
         await fetchMessages(false);
       } catch (error) {
         console.error("Error fetching ticket:", error);
@@ -105,6 +107,32 @@ function TicketDetailPage() {
 
     fetchData();
   }, [ticketId, fetchMessages]);
+
+  const handleSaveSolution = async () => {
+    if (!solutionText.trim()) {
+      toast.error("راه‌حل نمی‌تواند خالی باشد");
+      return;
+    }
+
+    try {
+      setSavingSolution(true);
+
+      const res = await ticketsApi.updateTicket(Number(ticketId), {
+        solution: solutionText.trim(),
+      });
+
+      setTicket((prev) =>
+        prev ? { ...prev, solution: res.data.solution } : prev
+      );
+
+      toast.success("راه‌حل با موفقیت ثبت شد");
+    } catch (error) {
+      console.error(error);
+      toast.error("خطا در ثبت راه‌حل");
+    } finally {
+      setSavingSolution(false);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,14 +251,18 @@ function TicketDetailPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span>نام</span>
-                <strong>{ticket.customer_name || ticket.customer || "نامشخص"}</strong>
+                <strong>
+                  {ticket.customer_name || ticket.customer || "نامشخص"}
+                </strong>
               </div>
               <div className="flex items-center justify-between">
                 <span>شماره تماس</span>
-                <strong>{ticket.customer_phone || ticket.user_phone || "نامشخص"}</strong>
+                <strong>
+                  {ticket.customer_phone || ticket.user_phone || "نامشخص"}
+                </strong>
               </div>
               <div className="flex items-center justify-between">
-                <span>کانال ثبت</span>
+                <span>نوع پشتیبانی</span>
                 <strong>
                   {ticket.support_type
                     ? SUPPORT_LABELS[ticket.support_type as SupportType]
@@ -257,18 +289,35 @@ function TicketDetailPage() {
         </div>
       </div>
 
-      {ticket.status === "پاسخ داده شده" ? (
+      {user?.role === "admin" ? (
+        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
+          <div className="text-sm font-semibold text-white">راه‌حل</div>
+
+          <textarea
+            value={solutionText}
+            onChange={(e) => setSolutionText(e.target.value)}
+            className="mt-3 w-full rounded-xl bg-white/20 text-white p-3 text-sm focus:outline-none"
+            placeholder="راه‌حل را اینجا بنویسید..."
+            rows={4}
+          />
+
+          <button
+            onClick={handleSaveSolution}
+            disabled={savingSolution}
+            className="mt-4 border-2 border-white text-white px-4 py-2 rounded-2xl hover:bg-white/20 transition"
+          >
+            {savingSolution ? "در حال ذخیره..." : "ثبت راه‌حل"}
+          </button>
+        </div>
+      ) : (
         <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
           <div className="text-sm font-semibold text-white">راه‌حل</div>
           <div className="mt-2 text-white/90">
             {ticket.solution || "راه‌حلی ثبت نشده است"}
           </div>
         </div>
-      ) : (
-        <div />
       )}
 
-      {/* Messages Section */}
       <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
         <div className="mb-6 flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
@@ -285,7 +334,9 @@ function TicketDetailPage() {
             className="ml-auto inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <RefreshCw
-              className={`h-4 w-4 ${isRefreshingMessages ? "animate-spin" : ""}`}
+              className={`h-4 w-4 ${
+                isRefreshingMessages ? "animate-spin" : ""
+              }`}
             />
             به‌روزرسانی
           </button>
@@ -389,7 +440,7 @@ function TicketDetailPage() {
               />
             </div>
 
-            {isStaffUser && (
+            {/* {isStaffUser && (
               <div className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-slate-50/60 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
                 <div className="flex flex-col gap-1">
                   <span className="font-semibold">ثبت به عنوان یادداشت داخلی</span>
@@ -404,17 +455,17 @@ function TicketDetailPage() {
                   ariaLabel="یادداشت داخلی"
                 />
               </div>
-            )}
+            )} */}
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <button
+              {/* <button
                 type="button"
                 disabled
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-400 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500"
               >
                 <Paperclip className="h-4 w-4" />
                 افزودن فایل (به‌زودی)
-              </button>
+              </button> */}
               <button
                 type="submit"
                 disabled={!newMessage.trim() || isSubmitting}
