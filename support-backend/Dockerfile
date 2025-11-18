@@ -1,24 +1,29 @@
 FROM node:18-alpine
 
 # Install required tools
-RUN apk add --no-cache wget postgresql-client bash
+RUN apk add --no-cache bash postgresql-client curl
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for migrations)
+# Install dependencies
 RUN npm ci
 
 # Copy application code
 COPY . .
 
-# Make start script executable
-RUN chmod +x start.sh
-
 # Expose port
 EXPOSE 2400
 
-# Start application with migration
-CMD ["./start.sh"]
+# Start application
+CMD ["sh", "-c", "\
+  echo '🚀 Starting Support Backend...' && \
+  echo '⏳ Waiting for PostgreSQL...' && \
+  until pg_isready -h \"$DB_HOST\" -p \"$DB_PORT\" -U \"$DB_USER\"; do sleep 1; done && \
+  echo '✅ PostgreSQL ready!' && \
+  npm run db:migrate && \
+  echo '🎯 Starting application...' && \
+  npm start \
+"]

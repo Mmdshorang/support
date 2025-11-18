@@ -21,9 +21,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS
 app.use(cors({
-  origin: '*',
+  origin: process.env.CORS_ORIGIN || '*',
   credentials: false
-}))
+}));
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -41,19 +41,11 @@ pool.query('SELECT NOW()', (err, res) => {
 
 // Health check routes
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-  });
+  res.status(200).json({ success: true, message: 'Server is running' });
 });
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'API is healthy',
-    timestamp: new Date().toISOString(),
-  });
+  res.status(200).json({ success: true, message: 'API is healthy' });
 });
 
 // Mount routers
@@ -68,31 +60,23 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 2400;
 
-const server = app.listen(PORT, () => {
-  console.log('═══════════════════════════════════════════');
+// **Change here: listen on 0.0.0.0**
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV} mode`);
-  console.log(`🔗 Server URL: http://localhost:${PORT}`);
-  console.log(`📡 API Base: http://localhost:${PORT}/api`);
-  console.log('═══════════════════════════════════════════');
+  console.log(`📡 API Base: http://0.0.0.0:${PORT}/api`);
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
+process.on('unhandledRejection', (err) => {
   console.error(`❌ Unhandled Rejection: ${err.message}`);
-  // Close server & exit process
   server.close(() => process.exit(1));
 });
 
-// Handle SIGTERM
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM received, closing server gracefully');
   server.close(() => {
-    console.log('✅ Server closed');
     pool.end();
     process.exit(0);
   });
 });
 
 export default app;
-
- 
