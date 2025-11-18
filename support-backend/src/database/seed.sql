@@ -38,11 +38,24 @@ INSERT INTO problem_types (id, name, description) VALUES
     ('850e8400-e29b-41d4-a716-446655440005', 'مشکلات گزارش‌گیری', 'مشکل در تهیه گزارش')
 ON CONFLICT DO NOTHING;
 
--- Insert sample tickets
-INSERT INTO tickets (subject, description, category_id, status, user_id, customer_id, support_type, solution) VALUES
-    ('مشکل در ورود به سیستم', 'از دیروز نمی‌توانم وارد حساب کاربری خود شوم', '650e8400-e29b-41d4-a716-446655440001', 'در حال پیگیری', '550e8400-e29b-41d4-a716-446655440003', '750e8400-e29b-41d4-a716-446655440001', 'remote', NULL),
-    ('درخواست فاکتور ماهانه', 'لطفا فاکتور ماه گذشته را برای من ارسال کنید', '650e8400-e29b-41d4-a716-446655440002', 'پاسخ داده شده', '550e8400-e29b-41d4-a716-446655440004', '750e8400-e29b-41d4-a716-446655440002', 'remote', 'فاکتور ارسال شد'),
-    ('سوال در مورد قابلیت جدید', 'آیا امکان اضافه شدن قابلیت X وجود دارد؟', '650e8400-e29b-41d4-a716-446655440005', 'بسته شده', '550e8400-e29b-41d4-a716-446655440003', NULL, 'inPerson', 'پس از توضیح حضوری، درخواست بسته شد');
+-- Insert sample tickets (using category names to get IDs)
+INSERT INTO tickets (subject, description, category_id, status, user_id, customer_id, support_type, solution)
+SELECT 'مشکل در ورود به سیستم', 'از دیروز نمی‌توانم وارد حساب کاربری خود شوم',
+    (SELECT id FROM ticket_categories WHERE name = 'فنی'), 'در حال پیگیری',
+    '550e8400-e29b-41d4-a716-446655440003', '750e8400-e29b-41d4-a716-446655440001', 'remote', NULL
+WHERE NOT EXISTS (SELECT 1 FROM tickets WHERE subject = 'مشکل در ورود به سیستم');
+
+INSERT INTO tickets (subject, description, category_id, status, user_id, customer_id, support_type, solution)
+SELECT 'درخواست فاکتور ماهانه', 'لطفا فاکتور ماه گذشته را برای من ارسال کنید',
+    (SELECT id FROM ticket_categories WHERE name = 'مالی'), 'پاسخ داده شده',
+    '550e8400-e29b-41d4-a716-446655440004', '750e8400-e29b-41d4-a716-446655440002', 'remote', 'فاکتور ارسال شد'
+WHERE NOT EXISTS (SELECT 1 FROM tickets WHERE subject = 'درخواست فاکتور ماهانه');
+
+INSERT INTO tickets (subject, description, category_id, status, user_id, customer_id, support_type, solution)
+SELECT 'سوال در مورد قابلیت جدید', 'آیا امکان اضافه شدن قابلیت X وجود دارد؟',
+    (SELECT id FROM ticket_categories WHERE name = 'درخواست ویژگی'), 'بسته شده',
+    '550e8400-e29b-41d4-a716-446655440003', NULL, 'inPerson', 'پس از توضیح حضوری، درخواست بسته شد'
+WHERE NOT EXISTS (SELECT 1 FROM tickets WHERE subject = 'سوال در مورد قابلیت جدید');
 
 -- Insert sample messages
 INSERT INTO ticket_messages (ticket_id, sender_id, message) VALUES

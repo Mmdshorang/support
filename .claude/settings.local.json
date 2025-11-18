@@ -12,7 +12,10 @@
       "Bash(findstr:*)",
       "Bash(src/server.js)",
       "Bash(dir /B c:UsersmmdskDesktopsupportsupport-appsrc)",
-      "Bash(node src/database/runMigration.js:*)"
+      "Bash(node src/database/runMigration.js:*)",
+      "Bash(dir:*)",
+      "Bash(npm run db:migrate:*)",
+      "Bash(pnpm run dev)"
     ],
     "deny": [],
     "ask": []

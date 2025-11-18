@@ -81,6 +81,31 @@ CREATE TABLE IF NOT EXISTS tickets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Add support_type column if it doesn't exist (for existing tables)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='tickets' AND column_name='support_type') THEN
+        ALTER TABLE tickets ADD COLUMN support_type VARCHAR(20) NOT NULL DEFAULT 'remote';
+        ALTER TABLE tickets ADD CONSTRAINT tickets_support_type_check
+            CHECK (support_type IN ('remote', 'inPerson'));
+    END IF;
+END $$;
+
+-- Add last_user_read_at and last_admin_read_at columns if they don't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='tickets' AND column_name='last_user_read_at') THEN
+        ALTER TABLE tickets ADD COLUMN last_user_read_at TIMESTAMP;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='tickets' AND column_name='last_admin_read_at') THEN
+        ALTER TABLE tickets ADD COLUMN last_admin_read_at TIMESTAMP;
+    END IF;
+END $$;
+
 -- Ticket messages
 CREATE TABLE IF NOT EXISTS ticket_messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -147,14 +172,18 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_customers_updated_at ON customers;
 CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_tickets_updated_at ON tickets;
 CREATE TRIGGER update_tickets_updated_at BEFORE UPDATE ON tickets
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_problem_types_updated_at ON problem_types;
 CREATE TRIGGER update_problem_types_updated_at BEFORE UPDATE ON problem_types
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
