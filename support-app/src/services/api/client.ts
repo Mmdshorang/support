@@ -29,10 +29,17 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('support-user');
-      window.location.href = '/login';
+      // Only redirect if we have a token (user was logged in)
+      // Don't redirect on login page when credentials are wrong
+      const hasToken = localStorage.getItem('token');
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+      if (hasToken && !isLoginRequest) {
+        // Clear token and redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('support-user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

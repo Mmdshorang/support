@@ -12,13 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UserUserSettingsRouteImport } from './routes/_user/user-settings'
 import { Route as UserUserDashboardRouteImport } from './routes/_user/user-dashboard'
 import { Route as UserNewTicketRouteImport } from './routes/_user/new-ticket'
 import { Route as LoginLogoutRouteImport } from './routes/_login/logout'
 import { Route as LoginLoginRouteImport } from './routes/_login/login'
-import { Route as AdminSettingsRouteImport } from './routes/_admin/settings'
+import { Route as AdminAdminSettingsRouteImport } from './routes/_admin/admin-settings'
 import { Route as UserTicketsTicketIdRouteImport } from './routes/_user/tickets/$ticketId'
-import { Route as UserSettingsRouteImport } from './routes/_user/settings'
 import { Route as UserSubmitTicketSubmitTicketRouteImport } from './routes/_user/_submitTicket/submitTicket'
 import { Route as AdminStatusTicketStatusTicketRouteImport } from './routes/_admin/_statusTicket/statusTicket'
 import { Route as AdminReportReportRouteImport } from './routes/_admin/_report/report'
@@ -41,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UserUserSettingsRoute = UserUserSettingsRouteImport.update({
+  id: '/_user/user-settings',
+  path: '/user-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UserUserDashboardRoute = UserUserDashboardRouteImport.update({
   id: '/_user/user-dashboard',
   path: '/user-dashboard',
@@ -61,14 +66,9 @@ const LoginLoginRoute = LoginLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/_admin/settings',
-  path: '/admin/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UserSettingsRoute = UserSettingsRouteImport.update({
-  id: '/_user/settings',
-  path: '/settings',
+const AdminAdminSettingsRoute = AdminAdminSettingsRouteImport.update({
+  id: '/_admin/admin-settings',
+  path: '/admin-settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserTicketsTicketIdRoute = UserTicketsTicketIdRouteImport.update({
@@ -115,12 +115,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof UserSettingsRoute
-  '/admin/settings': typeof AdminSettingsRoute
+  '/admin-settings': typeof AdminAdminSettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
   '/user-dashboard': typeof UserUserDashboardRoute
+  '/user-settings': typeof UserUserSettingsRoute
   '/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
   '/customers': typeof AdminCustomerCustomersRoute
   '/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
@@ -133,12 +133,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/settings': typeof UserSettingsRoute
-  '/admin/settings': typeof AdminSettingsRoute
+  '/admin-settings': typeof AdminAdminSettingsRoute
   '/login': typeof LoginLoginRoute
   '/logout': typeof LoginLogoutRoute
   '/new-ticket': typeof UserNewTicketRoute
   '/user-dashboard': typeof UserUserDashboardRoute
+  '/user-settings': typeof UserUserSettingsRoute
   '/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
   '/customers': typeof AdminCustomerCustomersRoute
   '/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
@@ -152,12 +152,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
-  '/_admin/settings': typeof AdminSettingsRoute
-  '/_user/settings': typeof UserSettingsRoute
+  '/_admin/admin-settings': typeof AdminAdminSettingsRoute
   '/_login/login': typeof LoginLoginRoute
   '/_login/logout': typeof LoginLogoutRoute
   '/_user/new-ticket': typeof UserNewTicketRoute
   '/_user/user-dashboard': typeof UserUserDashboardRoute
+  '/_user/user-settings': typeof UserUserSettingsRoute
   '/_admin/_customer/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
   '/_admin/_customer/customers': typeof AdminCustomerCustomersRoute
   '/_admin/_problems/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
@@ -172,12 +172,12 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
-    | '/settings'
-    | '/admin/settings'
+    | '/admin-settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
     | '/user-dashboard'
+    | '/user-settings'
     | '/customerRegistration'
     | '/customers'
     | '/submitTypesProblem'
@@ -190,12 +190,12 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
-    | '/settings'
-    | '/admin/settings'
+    | '/admin-settings'
     | '/login'
     | '/logout'
     | '/new-ticket'
     | '/user-dashboard'
+    | '/user-settings'
     | '/customerRegistration'
     | '/customers'
     | '/submitTypesProblem'
@@ -208,12 +208,12 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/help'
-    | '/_admin/settings'
-    | '/_user/settings'
+    | '/_admin/admin-settings'
     | '/_login/login'
     | '/_login/logout'
     | '/_user/new-ticket'
     | '/_user/user-dashboard'
+    | '/_user/user-settings'
     | '/_admin/_customer/customerRegistration'
     | '/_admin/_customer/customers'
     | '/_admin/_problems/submitTypesProblem'
@@ -227,12 +227,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   HelpRoute: typeof HelpRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  UserSettingsRoute: typeof UserSettingsRoute
+  AdminAdminSettingsRoute: typeof AdminAdminSettingsRoute
   LoginLoginRoute: typeof LoginLoginRoute
   LoginLogoutRoute: typeof LoginLogoutRoute
   UserNewTicketRoute: typeof UserNewTicketRoute
   UserUserDashboardRoute: typeof UserUserDashboardRoute
+  UserUserSettingsRoute: typeof UserUserSettingsRoute
   AdminCustomerCustomerRegistrationRoute: typeof AdminCustomerCustomerRegistrationRoute
   AdminCustomerCustomersRoute: typeof AdminCustomerCustomersRoute
   AdminProblemsSubmitTypesProblemRoute: typeof AdminProblemsSubmitTypesProblemRoute
@@ -265,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_user/user-settings': {
+      id: '/_user/user-settings'
+      path: '/user-settings'
+      fullPath: '/user-settings'
+      preLoaderRoute: typeof UserUserSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_user/user-dashboard': {
       id: '/_user/user-dashboard'
       path: '/user-dashboard'
@@ -293,18 +300,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_admin/settings': {
-      id: '/_admin/settings'
-      path: '/admin/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_user/settings': {
-      id: '/_user/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof UserSettingsRouteImport
+    '/_admin/admin-settings': {
+      id: '/_admin/admin-settings'
+      path: '/admin-settings'
+      fullPath: '/admin-settings'
+      preLoaderRoute: typeof AdminAdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_user/tickets/$ticketId': {
@@ -363,12 +363,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   HelpRoute: HelpRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  UserSettingsRoute: UserSettingsRoute,
+  AdminAdminSettingsRoute: AdminAdminSettingsRoute,
   LoginLoginRoute: LoginLoginRoute,
   LoginLogoutRoute: LoginLogoutRoute,
   UserNewTicketRoute: UserNewTicketRoute,
   UserUserDashboardRoute: UserUserDashboardRoute,
+  UserUserSettingsRoute: UserUserSettingsRoute,
   AdminCustomerCustomerRegistrationRoute:
     AdminCustomerCustomerRegistrationRoute,
   AdminCustomerCustomersRoute: AdminCustomerCustomersRoute,

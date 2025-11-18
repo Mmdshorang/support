@@ -30,7 +30,7 @@ const getErrorMessage = (error: unknown) => {
   return "خطای غیرمنتظره رخ داد";
 };
 
-export const Route = createFileRoute("/_user/settings")({
+export const Route = createFileRoute("/_user/user-settings")({
   component: UserSettingsPage,
 });
 

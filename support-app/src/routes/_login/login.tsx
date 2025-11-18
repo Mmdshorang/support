@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { toast } from "react-toastify";
 import { Eye, EyeOff, LogIn } from "lucide-react";
@@ -20,7 +20,21 @@ function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("remembered-username");
+    const savedPassword = localStorage.getItem("remembered-password");
+    const wasRemembered = localStorage.getItem("remember-me") === "true";
+
+    if (wasRemembered && savedUsername && savedPassword) {
+      setUsername(savedUsername);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +51,17 @@ function LoginPage() {
 
       if (response.success && response.data) {
         setUser(response.data.user);
+
+        // Handle remember me
+        if (rememberMe) {
+          localStorage.setItem("remembered-username", username);
+          localStorage.setItem("remembered-password", password);
+          localStorage.setItem("remember-me", "true");
+        } else {
+          localStorage.removeItem("remembered-username");
+          localStorage.removeItem("remembered-password");
+          localStorage.removeItem("remember-me");
+        }
 
         // Show success message
         toast.success(response.message || "ورود با موفقیت انجام شد");
@@ -122,6 +147,36 @@ function LoginPage() {
                 )}
               </button>
             </div>
+          </div>
+
+          <div>
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setRememberMe(checked);
+                  // Clear saved credentials if unchecked
+                  if (!checked) {
+                    localStorage.removeItem("remembered-username");
+                    localStorage.removeItem("remembered-password");
+                    localStorage.removeItem("remember-me");
+                  }
+                }}
+                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer dark:border-slate-600 dark:bg-slate-800"
+                disabled={isLoading}
+              />
+              <label
+                htmlFor="remember-me"
+                className="mr-2 block text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none"
+              >
+                مرا به خاطر بسپار
+              </label>
+            </div>
+        
           </div>
 
           <button

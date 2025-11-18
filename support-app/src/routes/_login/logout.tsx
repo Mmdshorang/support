@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSetAtom } from "jotai";
 import { toast } from "react-toastify";
 import { userAtom } from "../../stores/auth";
@@ -12,8 +12,13 @@ export const Route = createFileRoute("/_login/logout")({
 function LogoutPage() {
   const navigate = useNavigate();
   const setUser = useSetAtom(userAtom);
+  const hasLoggedOut = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasLoggedOut.current) return;
+    hasLoggedOut.current = true;
+
     // Clear user data
     authApi.logout();
     setUser(null);

@@ -40,14 +40,14 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/submitTypesProblem", label: "دسته بندی مشکلات", icon: Files },
   { type: "divider", label: "divider2" },
   { isTitle: true, label: "پیکربندی" },
-  { href: "/admin/settings", label: "تنظیمات", icon: Settings },
+  { href: "/admin-settings", label: "تنظیمات", icon: Settings },
 ];
 
 const USER_NAV_ITEMS: NavItem[] = [
   { isTitle: true, label: "منوی کاربری" },
   { href: "/dashboard", label: "داشبورد من", icon: LayoutDashboard },
   { href: "/new-ticket", label: "ثبت تیکت جدید", icon: Plus },
-  { href: "/settings", label: "تنظیمات حساب", icon: Settings },
+  { href: "/user-settings", label: "تنظیمات حساب", icon: Settings },
   { type: "divider", label: "divider" },
   { isTitle: true, label: "راهنما" },
   { href: "/help", label: "راهنمای استفاده", icon: LifeBuoy },
@@ -118,14 +118,14 @@ const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
     },
   },
   {
-    pattern: /^\/settings/,
+    pattern: /^\/user-settings/,
     meta: {
       title: "تنظیمات",
       subtitle: "مدیریت پروفایل، امنیت و تنظیمات حساب کاربری",
     },
   },
   {
-    pattern: /^\/admin\/settings/,
+    pattern: /^\/admin-settings/,
     meta: {
       title: "تنظیمات مدیر",
       subtitle: "پیکربندی حساب و تیم برای مدیر سیستم",

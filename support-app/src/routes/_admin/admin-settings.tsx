@@ -6,7 +6,7 @@ import { User, Lock, Bell, Shield } from "lucide-react";
 import { userAtom } from "../../stores/auth";
 import { authApi } from "../../services/api/auth";
 
-export const Route = createFileRoute("/_admin/settings")({
+export const Route = createFileRoute("/_admin/admin-settings")({
   component: SettingsPage,
 });
 
