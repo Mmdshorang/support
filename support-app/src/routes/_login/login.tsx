@@ -142,44 +142,6 @@ function LoginPage() {
             )}
           </button>
         </form>
-
-        {/* کاربران تست */}
-        <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-          <p className="text-slate-700 dark:text-white text-sm font-semibold mb-2">
-            کاربران تست:
-          </p>
-          <div className="space-y-2 text-xs text-slate-600 dark:text-slate-200">
-            <div className="flex justify-between">
-              <span>ادمین:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername("admin");
-                  setPassword("password123");
-                }}
-                className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-400 underline"
-              >
-                admin
-              </button>
-            </div>
-            <div className="flex justify-between">
-              <span>کاربر:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setUsername("ali");
-                  setPassword("password123");
-                }}
-                className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-400 underline"
-              >
-                ali
-              </button>
-            </div>
-            <p className="text-center mt-2 text-slate-500 dark:text-slate-300">
-              رمز عبور: password123
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

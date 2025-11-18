@@ -178,63 +178,60 @@ export default function UserSubmitTicketPage() {
         onSubmit={handleSubmit}
         className="space-y-5 rounded-3xl border border-slate-200/80 bg-white/100 p-6 shadow-sm transition dark:border-slate-800/60 dark:bg-slate-900/70"
       >
-        {isStaffUser && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              انتخاب مشتری
-            </label>
-            {isLoadingCustomers ? (
+        <div className="flex gap-5">
+          {isStaffUser && (
+            <div className="flex gap-3 space-y-2">
+              <label className="text-sm font-medium mt-2 text-slate-700 dark:text-slate-200">
+                انتخاب مشتری :
+              </label>
+              {isLoadingCustomers ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+                  در حال بارگذاری لیست مشتریان...
+                </div>
+              ) : (
+                <SelectBox
+                  options={customerOptions}
+                  value={selectedCustomer}
+                  onChange={(value) => setSelectedCustomer(value as Option)}
+                  placeholder="یک مشتری انتخاب کنید"
+                  searchable
+                  multiple={false}
+                  creatable={false}
+                />
+              )}
+            </div>
+          )}
+
+          {isRegularUser && user && (
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+              اطلاعات پروفایل شما ({user.name || user.username || "کاربر"}{" "}
+              {user.phone ? `- ${user.phone}` : ""}) به صورت خودکار به تیکت
+              اضافه می‌شود.
+            </div>
+          )}
+
+          <div className="flex gap-3 space-y-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
+              دسته‌بندی مشکل :
+            </span>
+            {isLoadingCategories ? (
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
-                در حال بارگذاری لیست مشتریان...
+                در حال بارگذاری دسته‌بندی‌ها...
               </div>
             ) : (
               <SelectBox
-                options={customerOptions}
-                value={selectedCustomer}
-                onChange={(value) => setSelectedCustomer(value as Option)}
-                placeholder="یک مشتری انتخاب کنید"
+                options={categories}
+                value={selectedCategory}
+                onChange={(value) => setSelectedCategory(value as Option)}
+                placeholder="یک دسته انتخاب کنید"
                 searchable
                 multiple={false}
                 creatable={false}
               />
             )}
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              لطفاً مشتری مربوطه را انتخاب کنید تا اطلاعات او به صورت خودکار
-              در تیکت ثبت شود.
-            </p>
           </div>
-        )}
-
-        {isRegularUser && user && (
-          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
-            اطلاعات پروفایل شما (
-            {user.name || user.username || "کاربر"}{" "}
-            {user.phone ? `- ${user.phone}` : ""}) به صورت خودکار به تیکت
-            اضافه می‌شود.
-          </div>
-        )}
-
-        <div className="flex gap-3 space-y-2">
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 mt-2">
-            دسته‌بندی مشکل :
-          </span>
-          {isLoadingCategories ? (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
-              در حال بارگذاری دسته‌بندی‌ها...
-            </div>
-          ) : (
-            <SelectBox
-              options={categories}
-              value={selectedCategory}
-              onChange={(value) => setSelectedCategory(value as Option)}
-              placeholder="یک دسته انتخاب کنید"
-              searchable
-              multiple={false}
-              creatable={false}
-            />
-          )}
         </div>
 
         <div className="lg:flex  gap-3 space-y-2">

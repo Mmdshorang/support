@@ -290,6 +290,7 @@ export default function AdminDashboard() {
                   <th className="rounded-r-xl bg-slate-100 px-3 py-2">تیکت</th>
                   <th className="bg-slate-100 px-3 py-2">مشتری</th>
                   <th className="bg-slate-100 px-3 py-2">شماره تماس</th>
+                  <th className="bg-slate-100 px-3 py-2">دسته بندی</th>
                   <th className="bg-slate-100 px-3 py-2">مشکل</th>
                   <th className="bg-slate-100 px-3 py-2">نوع پشتیبانی</th>
                   <th className="bg-slate-100 px-3 py-2">راه‌حل</th>
@@ -348,7 +349,10 @@ export default function AdminDashboard() {
                         <p className="font-medium">{customerPhone}</p>
                       </td>
                       <td className="px-1 py-4">
-                        <p className="text-sm">{ticket.subject}</p>
+                        <p className="text-sm">{ticket.category_name}</p>
+                      </td>
+                      <td className="px-1 py-4">
+                        <p className="text-sm">{ticket.description}</p>
                       </td>
 
                       <td className="px-1 py-4">
