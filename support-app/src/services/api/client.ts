@@ -2,9 +2,20 @@ import axios from "axios";
 
 // Production API URL - این مقدار پیش‌فرض است
 const PRODUCTION_API_URL = "https://tender-mendel-6y7weckrv.liara.run/api";
+const DEVELOPMENT_API_URL = "http://localhost:5000/api";
+
+// Check if we're in development mode
+const isDevelopment =
+  import.meta.env.DEV || import.meta.env.MODE === "development";
 
 // Get API URL - prioritize runtime config, then build-time env, then default
 const getApiUrl = (): string => {
+  // In development, use localhost
+  if (isDevelopment) {
+    const devUrl = import.meta.env.VITE_API_URL || DEVELOPMENT_API_URL;
+    return devUrl;
+  }
+
   // First try build-time env variable (but never use localhost in production)
   const buildTimeUrl = import.meta.env.VITE_API_URL;
   if (buildTimeUrl && !buildTimeUrl.includes("localhost")) {
@@ -38,8 +49,8 @@ if (typeof window !== "undefined") {
     })
     .then((config) => {
       if (config?.VITE_API_URL) {
-        // Never allow localhost in production
-        if (!config.VITE_API_URL.includes("localhost")) {
+        // In development, allow localhost
+        if (isDevelopment || !config.VITE_API_URL.includes("localhost")) {
           apiClient.defaults.baseURL = config.VITE_API_URL;
           console.log(
             "✅ API URL loaded from config.json:",
@@ -47,7 +58,7 @@ if (typeof window !== "undefined") {
           );
         } else {
           console.warn(
-            "⚠️ Config contains localhost, using production URL instead"
+            "⚠️ Config contains localhost in production, using production URL instead"
           );
           apiClient.defaults.baseURL = PRODUCTION_API_URL;
         }
@@ -70,11 +81,16 @@ apiClient.interceptors.request.use(
     const baseURL = config.baseURL || apiClient.defaults.baseURL || "";
     const fullRequestUrl = baseURL + fullUrl;
 
+    // Only block localhost in production
     if (
-      fullRequestUrl.includes("localhost") ||
-      fullRequestUrl.includes("127.0.0.1")
+      !isDevelopment &&
+      (fullRequestUrl.includes("localhost") ||
+        fullRequestUrl.includes("127.0.0.1"))
     ) {
-      console.error("❌ Blocked request to localhost:", fullRequestUrl);
+      console.error(
+        "❌ Blocked request to localhost in production:",
+        fullRequestUrl
+      );
       console.log("Using production URL instead:", PRODUCTION_API_URL);
       config.baseURL = PRODUCTION_API_URL;
     }
