@@ -20,7 +20,9 @@ export const protect = async (req, res, next) => {
 
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const jwtSecret =
+      process.env.JWT_SECRET || "support_system_super_secret_jwt_key_2024";
+    const decoded = jwt.verify(token, jwtSecret);
 
     // Get user from database
     const result = await query(

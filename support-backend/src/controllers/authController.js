@@ -4,8 +4,11 @@ import { query } from "../config/database.js";
 
 // Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || "7d",
+  const jwtSecret =
+    process.env.JWT_SECRET || "support_system_super_secret_jwt_key_2024";
+  const jwtExpire = process.env.JWT_EXPIRE || "7d";
+  return jwt.sign({ id }, jwtSecret, {
+    expiresIn: jwtExpire,
   });
 };
 

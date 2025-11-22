@@ -1,25 +1,28 @@
-import pg from 'pg';
-import dotenv from 'dotenv';
+import pg from "pg";
+import dotenv from "dotenv";
 
-dotenv.config();
+// Load .env only in development
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 const { Client } = pg;
 
 async function createDatabase() {
   // Connect to default postgres database
   const client = new Client({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: 'postgres', // Connect to default database
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST || "damavand.liara.cloud",
+    port: parseInt(process.env.DB_PORT || "32884"),
+    database: "postgres", // Connect to default database
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "81lW3Mnd1PHTwdZPH7HWUaVT",
   });
 
   try {
     await client.connect();
-    console.log('✅ Connected to PostgreSQL server');
+    console.log("✅ Connected to PostgreSQL server");
 
-    const dbName = process.env.DB_NAME || 'support_db';
+    const dbName = process.env.DB_NAME || "support_db";
 
     // Check if database exists
     const checkResult = await client.query(
@@ -36,9 +39,9 @@ async function createDatabase() {
     }
 
     await client.end();
-    console.log('🎉 Done!');
+    console.log("🎉 Done!");
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error("❌ Error:", error.message);
     if (client._connected) {
       await client.end();
     }

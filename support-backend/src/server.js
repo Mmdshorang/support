@@ -2,15 +2,25 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import ticketRoutes from "./routes/ticketRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import pool from "./config/database.js";
 
-// Load env vars
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load env vars from backend root directory only in development
+// In production, use system environment variables
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: path.join(__dirname, "../.env") });
+}
+
+// Import database after env is loaded
+import pool from "./config/database.js";
 
 // Create Express app
 const app = express();
@@ -55,6 +65,49 @@ app.get("/api/health", (req, res) => {
     success: true,
     message: "API is healthy",
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Database health check endpoint
+app.get("/api/health/db", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT NOW() as time, version() as version"
+    );
+    res.status(200).json({
+      success: true,
+      message: "Database is connected",
+      data: {
+        time: result.rows[0].time,
+        version:
+          result.rows[0].version.split(" ")[0] +
+          " " +
+          result.rows[0].version.split(" ")[1],
+      },
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      message: "Database connection failed",
+      error: error.message,
+      code: error.code,
+    });
+  }
+});
+
+// Environment variables check endpoint (for debugging)
+app.get("/api/health/env", (req, res) => {
+  res.status(200).json({
+    success: true,
+    env: {
+      NODE_ENV: process.env.NODE_ENV || "NOT SET",
+      DB_HOST: process.env.DB_HOST || "NOT SET",
+      DB_PORT: process.env.DB_PORT || "NOT SET",
+      DB_NAME: process.env.DB_NAME || "NOT SET",
+      DB_USER: process.env.DB_USER || "NOT SET",
+      DB_PASSWORD: process.env.DB_PASSWORD ? "***SET***" : "NOT SET",
+      PORT: process.env.PORT || "NOT SET",
+    },
   });
 });
 

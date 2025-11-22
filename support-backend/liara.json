@@ -6,14 +6,17 @@
   },
   "disks": [],
   "env": {
-    "DB_HOST": "adina",
-    "DB_PORT": "5432",
-    "DB_NAME": "postgres",
+    "DB_HOST": "damavand.liara.cloud",
+    "DB_PORT": "32884",
+    "DB_NAME": "support_db",
     "DB_USER": "root",
     "DB_PASSWORD": "81lW3Mnd1PHTwdZPH7HWUaVT",
-    "JWT_SECRET": "ZPZuZZF63QyirjTHtyimJZF5K2bcAvxXMe04S0uOG58=",
+    "JWT_SECRET": "support_system_super_secret_jwt_key_2024",
     "JWT_EXPIRE": "7d",
     "NODE_ENV": "production",
-    "CORS_ORIGIN": "https://support-front.liara.run,https://adinaticket.ir"
+    "CORS_ORIGIN": "https://my-frontend.liara.run",
+    "PORT": "5000",
+    "MAX_FILE_SIZE": "10485760",
+    "UPLOAD_PATH": "./uploads"
   }
 }

@@ -4,7 +4,10 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-dotenv.config();
+// Load .env only in development
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 const { Client } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -12,11 +15,11 @@ const __dirname = path.dirname(__filename);
 
 async function runMigration() {
   const client = new Client({
-    host: process.env.DB_HOST || "localhost",
-    port: process.env.DB_PORT || 5432,
+    host: process.env.DB_HOST || "damavand.liara.cloud",
+    port: parseInt(process.env.DB_PORT || "32884"),
     database: process.env.DB_NAME || "support_db",
-    user: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "81lW3Mnd1PHTwdZPH7HWUaVT",
   });
 
   try {
