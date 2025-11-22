@@ -1,0 +1,19 @@
+{
+  "app": "tender-mendel-6y7weckrv",
+  "port": 3000,
+  "build": {
+    "location": "iran"
+  },
+  "disks": [],
+  "env": {
+    "DB_HOST": "adina",
+    "DB_PORT": "5432",
+    "DB_NAME": "postgres",
+    "DB_USER": "root",
+    "DB_PASSWORD": "81lW3Mnd1PHTwdZPH7HWUaVT",
+    "JWT_SECRET": "ZPZuZZF63QyirjTHtyimJZF5K2bcAvxXMe04S0uOG58=",
+    "JWT_EXPIRE": "7d",
+    "NODE_ENV": "production",
+    "CORS_ORIGIN": "https://support-front.liara.run,https://adinaticket.ir"
+  }
+}
