@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "@tanstack/react-router";
 import { ticketsApi } from "../../services/api/tickets";
 import type { Ticket as ApiTicket } from "../../services/api/tickets";
+import { Eye, Trash, CircleX } from "lucide-react";
 
 interface Ticket {
   id: number;
@@ -125,6 +126,28 @@ export function StatusTicketPage() {
     } catch (error) {
       console.error("Error deleting ticket:", error);
       toast.error("خطا در حذف تیکت");
+    }
+  };
+
+  const handleCloseTicket = async (id: number) => {
+    try {
+      await ticketsApi.updateStatus(id, "بسته شده");
+
+      setTickets((prev) =>
+        prev.map((ticket) =>
+          ticket.id === id
+            ? {
+                ...ticket,
+                status: "closed",
+                statusText: "بسته شده",
+              }
+            : ticket
+        )
+      );
+
+      toast.success("تیکت با موفقیت بسته شد");
+    } catch (error) {
+      toast.error("خطا در بستن تیکت");
     }
   };
 
@@ -287,20 +310,26 @@ export function StatusTicketPage() {
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
+                            handleCloseTicket(ticket.id);
+                          }}
+                        >
+                          <CircleX className="text-yellow-500 cursor-pointer size-4.5" />
+                        </button>
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
                             openTicketConversation(ticket.id);
                           }}
-                          className="rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600"
                         >
-                          مشاهده چت
+                          <Eye className="text-blue-500 cursor-pointer size-4.5" />
                         </button>
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
                             handleDelete(ticket.id);
                           }}
-                          className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-600"
                         >
-                          حذف
+                          <Trash className="text-red-500 cursor-pointer size-4.5" />
                         </button>
                       </div>
                     </td>
