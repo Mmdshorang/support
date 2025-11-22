@@ -13,13 +13,19 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
--- Backfill support_type using previous channel data when possible
-UPDATE tickets
-SET support_type = CASE
-        WHEN channel IN ('حضوری', 'inPerson', 'مراجعه حضوری', 'تلفن') THEN 'inPerson'
-        ELSE 'remote'
-    END
-WHERE support_type IS NULL OR support_type NOT IN ('remote', 'inPerson');
+-- Backfill support_type using previous channel data when possible (if channel exists)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns 
+               WHERE table_name='tickets' AND column_name='channel') THEN
+        UPDATE tickets
+        SET support_type = CASE
+                WHEN channel IN ('حضوری', 'inPerson', 'مراجعه حضوری', 'تلفن') THEN 'inPerson'
+                ELSE 'remote'
+            END
+        WHERE support_type IS NULL OR support_type NOT IN ('remote', 'inPerson');
+    END IF;
+END $$;
 
 -- 2. Add read tracking columns
 ALTER TABLE tickets

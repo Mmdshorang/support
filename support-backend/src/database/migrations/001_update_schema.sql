@@ -13,24 +13,25 @@ ALTER TABLE users ALTER COLUMN username SET NOT NULL;
 -- 4. Update index for username
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
--- 5. Make priority nullable in tickets (remove NOT NULL constraint)
-ALTER TABLE tickets ALTER COLUMN priority DROP NOT NULL;
-ALTER TABLE tickets ALTER COLUMN priority DROP DEFAULT;
-
--- 6. Drop the CHECK constraint on priority (if it causes issues, we'll make it nullable)
--- Note: To drop a constraint, we need to know its name. Let's recreate the table constraint
--- First, let's just make priority fully optional
+-- 5. Handle priority column if it exists (for legacy databases)
 DO $$
 BEGIN
-    -- Try to drop the check constraint (name may vary)
-    ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_priority_check;
-EXCEPTION
-    WHEN undefined_object THEN NULL;
+    IF EXISTS (SELECT 1 FROM information_schema.columns 
+               WHERE table_name='tickets' AND column_name='priority') THEN
+        ALTER TABLE tickets ALTER COLUMN priority DROP NOT NULL;
+        ALTER TABLE tickets ALTER COLUMN priority DROP DEFAULT;
+        ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_priority_check;
+    END IF;
 END $$;
 
--- 7. Add solution field to tickets table
+-- 6. Add solution field to tickets table (if not exists)
 ALTER TABLE tickets ADD COLUMN IF NOT EXISTS solution TEXT;
-ALTER TABLE tickets ADD COLUMN IF NOT EXISTS channel VARCHAR(50) DEFAULT 'وب';
 
--- Update existing tickets to have default channel if NULL
-UPDATE tickets SET channel = 'وب' WHERE channel IS NULL;
+-- 7. Handle channel column if it exists (for legacy databases)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns 
+               WHERE table_name='tickets' AND column_name='channel') THEN
+        UPDATE tickets SET channel = 'وب' WHERE channel IS NULL;
+    END IF;
+END $$;
