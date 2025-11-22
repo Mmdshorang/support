@@ -1,8 +1,10 @@
 # مرحله build
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Build argument for API URL
-ARG VITE_API_URL=http://localhost:2400/api
+# لیارا متغیرهای env را به صورت environment variables در دسترس قرار می‌دهد
+# می‌توانیم از ARG با مقدار پیش‌فرض استفاده کنیم
+ARG VITE_API_URL=https://tender-mendel-6y7weckrv.liara.run/api
 
 WORKDIR /app
 
@@ -16,7 +18,8 @@ RUN npm ci
 COPY . .
 
 # Set environment variable for build
-ENV VITE_API_URL=$VITE_API_URL
+# از ARG استفاده می‌کنیم که می‌تواند از build-time environment variable override شود
+ENV VITE_API_URL=${VITE_API_URL}
 
 # Build application
 RUN npm run build
