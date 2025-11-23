@@ -22,6 +22,9 @@ export interface Customer {
   contract_days_remaining?: number | null;
   created_by?: string | null;
   created_by_name?: string | null;
+  user_id?: string | null;
+  user_role?: "user" | "admin" | "support" | null;
+  user_username?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -129,6 +132,18 @@ export const customersApi = {
   getCustomerTickets: async (id: string): Promise<ApiResponse<Ticket[]>> => {
     const response = await apiClient.get<ApiResponse<Ticket[]>>(
       `/customers/${id}/tickets`
+    );
+    return response.data;
+  },
+
+  // Update customer user role (admin only)
+  updateCustomerUserRole: async (
+    id: string,
+    role: "user" | "admin" | "support"
+  ): Promise<ApiResponse<any>> => {
+    const response = await apiClient.put<ApiResponse<any>>(
+      `/customers/${id}/user-role`,
+      { role }
     );
     return response.data;
   },

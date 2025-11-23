@@ -1,17 +1,13 @@
-import { Menu, UserCircle2 } from "lucide-react";
+import { UserCircle2 } from "lucide-react";
 import { useAtomValue } from "jotai";
 import { userAtom } from "../../stores/auth";
 
 interface TopBarProps {
-  sidebarOpen: boolean;
-  onToggleSidebar: () => void;
   pageTitle: string;
   subtitle?: string;
 }
 
 export default function TopBar({
-  sidebarOpen,
-  onToggleSidebar,
   pageTitle,
   subtitle,
 }: TopBarProps) {
@@ -21,14 +17,14 @@ export default function TopBar({
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-sm dark:border-slate-800/70 dark:bg-slate-900/80">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <button
+          {/* <button
             type="button"
             onClick={onToggleSidebar}
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             aria-label={sidebarOpen ? "بستن منو" : "باز کردن منو"}
           >
             <Menu className="h-5 w-5" />
-          </button>
+          </button> */}
           <div>
             <h1 className="text-lg font-bold text-slate-900 dark:text-white">
               {pageTitle}

@@ -31,6 +31,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { isTitle: true, label: "اصلی" },
   { href: "/", label: "خانه", icon: Home },
   { href: "/submitTicket", label: "ثبت تیکت", icon: MessageSquare },
+  { href: "/directTicket", label: "ثبت تیکت مستقیم", icon: MessageSquare },
   { href: "/statusTicket", label: "وضعیت تیکت‌ها", icon: CalendarClock },
   { href: "/customers", label: "لیست مشتریان", icon: UsersRound },
   { href: "/customerRegistration", label: "ثبت مشتری", icon: Plus },
@@ -90,6 +91,12 @@ const METADATA: Array<{ pattern: RegExp; meta: PageMeta }> = [
     pattern: /^\/submitTicket/,
     meta: {
       title: "ثبت تیکت پشتیبانی",
+    },
+  },
+  {
+    pattern: /^\/directTicket/,
+    meta: {
+      title: "ثبت تیکت مستقیم",
     },
   },
   {
@@ -181,16 +188,6 @@ export default function AppShell({ children }: AppShellProps) {
     return <>{children}</>;
   }
 
-  const handleSidebarToggle = () => {
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(min-width: 1024px)").matches
-    ) {
-      setSidebarOpen((prev) => !prev);
-    } else {
-      setMobileSidebarOpen((prev) => !prev);
-    }
-  };
 
   const effectiveSidebarOpen = mobileSidebarOpen || sidebarOpen;
 
@@ -231,8 +228,6 @@ export default function AppShell({ children }: AppShellProps) {
       </div>
       <div className="flex flex-1 flex-col w-full">
         <TopBar
-          sidebarOpen={effectiveSidebarOpen}
-          onToggleSidebar={handleSidebarToggle}
           pageTitle={meta.title}
           subtitle={meta.subtitle}
         />

@@ -209,10 +209,10 @@ function TicketDetailPage() {
                 #{ticket.id}
               </span>
               <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                {ticket.subject}
+                {ticket.category_name || "نامشخص"}
               </h1>
             </div>
-            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className="text-xl font-bold leading-relaxed text-slate-600 dark:text-slate-300">
               {ticket.description}
             </p>
             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
@@ -288,35 +288,6 @@ function TicketDetailPage() {
           </div>
         </div>
       </div>
-
-      {user?.role === "admin" ? (
-        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
-          <div className="text-sm font-semibold text-white">راه‌حل</div>
-
-          <textarea
-            value={solutionText}
-            onChange={(e) => setSolutionText(e.target.value)}
-            className="mt-3 w-full rounded-xl bg-white/20 text-white p-3 text-sm focus:outline-none"
-            placeholder="راه‌حل را اینجا بنویسید..."
-            rows={4}
-          />
-
-          <button
-            onClick={handleSaveSolution}
-            disabled={savingSolution}
-            className="mt-4 border-2 border-white text-white px-4 py-2 rounded-2xl hover:bg-white/20 transition"
-          >
-            {savingSolution ? "در حال ذخیره..." : "ثبت راه‌حل"}
-          </button>
-        </div>
-      ) : (
-        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
-          <div className="text-sm font-semibold text-white">راه‌حل</div>
-          <div className="mt-2 text-white/90">
-            {ticket.solution || "راه‌حلی ثبت نشده است"}
-          </div>
-        </div>
-      )}
 
       <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
         <div className="mb-6 flex items-center gap-2">
@@ -486,6 +457,34 @@ function TicketDetailPage() {
           </div>
         )}
       </div>
+      {user?.role === "admin" ? (
+        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
+          <div className="text-sm font-semibold text-white">راه‌حل</div>
+
+          <textarea
+            value={solutionText}
+            onChange={(e) => setSolutionText(e.target.value)}
+            className="mt-3 w-full rounded-xl bg-white/20 text-white p-3 text-sm focus:outline-none"
+            placeholder="راه‌حل را اینجا بنویسید..."
+            rows={4}
+          />
+
+          <button
+            onClick={handleSaveSolution}
+            disabled={savingSolution}
+            className="mt-4 border-2 border-white text-white px-4 py-2 rounded-2xl hover:bg-white/20 transition"
+          >
+            {savingSolution ? "در حال ذخیره..." : "ثبت راه‌حل"}
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
+          <div className="text-sm font-semibold text-white">راه‌حل</div>
+          <div className="mt-2 text-white/90">
+            {ticket.solution || "راه‌حلی ثبت نشده است"}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

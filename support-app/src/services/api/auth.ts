@@ -25,6 +25,7 @@ export interface AuthResponse {
 
 export interface UpdateDetailsData {
   name?: string;
+  username?: string;
   email?: string;
   phone?: string;
 }

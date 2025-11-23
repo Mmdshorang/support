@@ -20,9 +20,11 @@ import { Route as LoginLoginRouteImport } from './routes/_login/login'
 import { Route as AdminAdminSettingsRouteImport } from './routes/_admin/admin-settings'
 import { Route as UserTicketsTicketIdRouteImport } from './routes/_user/tickets/$ticketId'
 import { Route as UserSubmitTicketSubmitTicketRouteImport } from './routes/_user/_submitTicket/submitTicket'
+import { Route as AdminUsersUsersRouteImport } from './routes/_admin/_users/users'
 import { Route as AdminStatusTicketStatusTicketRouteImport } from './routes/_admin/_statusTicket/statusTicket'
 import { Route as AdminReportReportRouteImport } from './routes/_admin/_report/report'
 import { Route as AdminProblemsSubmitTypesProblemRouteImport } from './routes/_admin/_problems/submitTypesProblem'
+import { Route as AdminDirectTicketDirectTicketRouteImport } from './routes/_admin/_directTicket/directTicket'
 import { Route as AdminCustomerCustomersRouteImport } from './routes/_admin/_customer/customers'
 import { Route as AdminCustomerCustomerRegistrationRouteImport } from './routes/_admin/_customer/customerRegistration'
 
@@ -82,6 +84,11 @@ const UserSubmitTicketSubmitTicketRoute =
     path: '/submitTicket',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminUsersUsersRoute = AdminUsersUsersRouteImport.update({
+  id: '/_admin/_users/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminStatusTicketStatusTicketRoute =
   AdminStatusTicketStatusTicketRouteImport.update({
     id: '/_admin/_statusTicket/statusTicket',
@@ -97,6 +104,12 @@ const AdminProblemsSubmitTypesProblemRoute =
   AdminProblemsSubmitTypesProblemRouteImport.update({
     id: '/_admin/_problems/submitTypesProblem',
     path: '/submitTypesProblem',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminDirectTicketDirectTicketRoute =
+  AdminDirectTicketDirectTicketRouteImport.update({
+    id: '/_admin/_directTicket/directTicket',
+    path: '/directTicket',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AdminCustomerCustomersRoute = AdminCustomerCustomersRouteImport.update({
@@ -123,9 +136,11 @@ export interface FileRoutesByFullPath {
   '/user-settings': typeof UserUserSettingsRoute
   '/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
   '/customers': typeof AdminCustomerCustomersRoute
+  '/directTicket': typeof AdminDirectTicketDirectTicketRoute
   '/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
   '/report': typeof AdminReportReportRoute
   '/statusTicket': typeof AdminStatusTicketStatusTicketRoute
+  '/users': typeof AdminUsersUsersRoute
   '/submitTicket': typeof UserSubmitTicketSubmitTicketRoute
   '/tickets/$ticketId': typeof UserTicketsTicketIdRoute
 }
@@ -141,9 +156,11 @@ export interface FileRoutesByTo {
   '/user-settings': typeof UserUserSettingsRoute
   '/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
   '/customers': typeof AdminCustomerCustomersRoute
+  '/directTicket': typeof AdminDirectTicketDirectTicketRoute
   '/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
   '/report': typeof AdminReportReportRoute
   '/statusTicket': typeof AdminStatusTicketStatusTicketRoute
+  '/users': typeof AdminUsersUsersRoute
   '/submitTicket': typeof UserSubmitTicketSubmitTicketRoute
   '/tickets/$ticketId': typeof UserTicketsTicketIdRoute
 }
@@ -160,9 +177,11 @@ export interface FileRoutesById {
   '/_user/user-settings': typeof UserUserSettingsRoute
   '/_admin/_customer/customerRegistration': typeof AdminCustomerCustomerRegistrationRoute
   '/_admin/_customer/customers': typeof AdminCustomerCustomersRoute
+  '/_admin/_directTicket/directTicket': typeof AdminDirectTicketDirectTicketRoute
   '/_admin/_problems/submitTypesProblem': typeof AdminProblemsSubmitTypesProblemRoute
   '/_admin/_report/report': typeof AdminReportReportRoute
   '/_admin/_statusTicket/statusTicket': typeof AdminStatusTicketStatusTicketRoute
+  '/_admin/_users/users': typeof AdminUsersUsersRoute
   '/_user/_submitTicket/submitTicket': typeof UserSubmitTicketSubmitTicketRoute
   '/_user/tickets/$ticketId': typeof UserTicketsTicketIdRoute
 }
@@ -180,9 +199,11 @@ export interface FileRouteTypes {
     | '/user-settings'
     | '/customerRegistration'
     | '/customers'
+    | '/directTicket'
     | '/submitTypesProblem'
     | '/report'
     | '/statusTicket'
+    | '/users'
     | '/submitTicket'
     | '/tickets/$ticketId'
   fileRoutesByTo: FileRoutesByTo
@@ -198,9 +219,11 @@ export interface FileRouteTypes {
     | '/user-settings'
     | '/customerRegistration'
     | '/customers'
+    | '/directTicket'
     | '/submitTypesProblem'
     | '/report'
     | '/statusTicket'
+    | '/users'
     | '/submitTicket'
     | '/tickets/$ticketId'
   id:
@@ -216,9 +239,11 @@ export interface FileRouteTypes {
     | '/_user/user-settings'
     | '/_admin/_customer/customerRegistration'
     | '/_admin/_customer/customers'
+    | '/_admin/_directTicket/directTicket'
     | '/_admin/_problems/submitTypesProblem'
     | '/_admin/_report/report'
     | '/_admin/_statusTicket/statusTicket'
+    | '/_admin/_users/users'
     | '/_user/_submitTicket/submitTicket'
     | '/_user/tickets/$ticketId'
   fileRoutesById: FileRoutesById
@@ -235,9 +260,11 @@ export interface RootRouteChildren {
   UserUserSettingsRoute: typeof UserUserSettingsRoute
   AdminCustomerCustomerRegistrationRoute: typeof AdminCustomerCustomerRegistrationRoute
   AdminCustomerCustomersRoute: typeof AdminCustomerCustomersRoute
+  AdminDirectTicketDirectTicketRoute: typeof AdminDirectTicketDirectTicketRoute
   AdminProblemsSubmitTypesProblemRoute: typeof AdminProblemsSubmitTypesProblemRoute
   AdminReportReportRoute: typeof AdminReportReportRoute
   AdminStatusTicketStatusTicketRoute: typeof AdminStatusTicketStatusTicketRoute
+  AdminUsersUsersRoute: typeof AdminUsersUsersRoute
   UserSubmitTicketSubmitTicketRoute: typeof UserSubmitTicketSubmitTicketRoute
   UserTicketsTicketIdRoute: typeof UserTicketsTicketIdRoute
 }
@@ -321,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserSubmitTicketSubmitTicketRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_admin/_users/users': {
+      id: '/_admin/_users/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AdminUsersUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_admin/_statusTicket/statusTicket': {
       id: '/_admin/_statusTicket/statusTicket'
       path: '/statusTicket'
@@ -340,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/submitTypesProblem'
       fullPath: '/submitTypesProblem'
       preLoaderRoute: typeof AdminProblemsSubmitTypesProblemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin/_directTicket/directTicket': {
+      id: '/_admin/_directTicket/directTicket'
+      path: '/directTicket'
+      fullPath: '/directTicket'
+      preLoaderRoute: typeof AdminDirectTicketDirectTicketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_admin/_customer/customers': {
@@ -372,9 +413,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCustomerCustomerRegistrationRoute:
     AdminCustomerCustomerRegistrationRoute,
   AdminCustomerCustomersRoute: AdminCustomerCustomersRoute,
+  AdminDirectTicketDirectTicketRoute: AdminDirectTicketDirectTicketRoute,
   AdminProblemsSubmitTypesProblemRoute: AdminProblemsSubmitTypesProblemRoute,
   AdminReportReportRoute: AdminReportReportRoute,
   AdminStatusTicketStatusTicketRoute: AdminStatusTicketStatusTicketRoute,
+  AdminUsersUsersRoute: AdminUsersUsersRoute,
   UserSubmitTicketSubmitTicketRoute: UserSubmitTicketSubmitTicketRoute,
   UserTicketsTicketIdRoute: UserTicketsTicketIdRoute,
 }

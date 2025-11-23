@@ -6,6 +6,7 @@ import {
   updateCustomer,
   deleteCustomer,
   getCustomerTickets,
+  updateCustomerUserRole,
 } from '../controllers/customerController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -25,5 +26,7 @@ router
 router
   .route('/:id/tickets')
   .get(protect, authorize('admin', 'support'), getCustomerTickets);
+
+router.put('/:id/user-role', protect, authorize('admin'), updateCustomerUserRole);
 
 export default router;

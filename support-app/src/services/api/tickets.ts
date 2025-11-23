@@ -216,7 +216,7 @@ export const ticketsApi = {
   id: number,
   status: TicketStatus
 ): Promise<ApiResponse<Ticket>> => {
-  const response = await apiClient.patch<ApiResponse<Ticket>>(
+  const response = await apiClient.put<ApiResponse<Ticket>>(
     `/tickets/${id}`,
     { status }
   );
