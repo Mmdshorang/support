@@ -82,6 +82,9 @@ export const getCustomers = async (req, res, next) => {
       `SELECT
         c.*,
         u.name as created_by_name,
+        cu.id as user_id,
+        cu.role as user_role,
+        cu.username as user_username,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
         CASE
           WHEN c.contract_end_date IS NULL THEN 'unknown'
@@ -95,8 +98,9 @@ export const getCustomers = async (req, res, next) => {
         END as contract_days_remaining
        FROM customers c
        LEFT JOIN users u ON c.created_by = u.id
+       LEFT JOIN users cu ON cu.customer_id = c.id
        ${whereClause}
-       ORDER BY c.${sortField} ${sortDirection}
+       ORDER BY c."${sortField}" ${sortDirection}
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
       values
     );
@@ -263,9 +267,16 @@ export const createCustomer = async (req, res, next) => {
 
     const customer = result.rows[0];
 
-    // Generate username from customer name (remove spaces and convert to lowercase)
-    const username = trimmedName.replace(/\s+/g, "").toLowerCase();
-    const password = username; // Password is same as username
+    // Use phone number as both username and password
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "شماره تماس برای ایجاد حساب کاربری الزامی است",
+      });
+    }
+
+    const username = normalizedPhone;
+    const password = normalizedPhone; // Password is same as phone number
 
     // Check if username already exists
     const existingUser = await query(
@@ -296,6 +307,12 @@ export const createCustomer = async (req, res, next) => {
       );
 
       userCredentials = { username, password };
+    } else {
+      // If user exists, link the customer to existing user
+      await query(
+        `UPDATE users SET customer_id = $1 WHERE username = $2`,
+        [customer.id, username]
+      );
     }
 
     res.status(201).json({
@@ -460,6 +477,63 @@ export const updateCustomer = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "مشتری با موفقیت به‌روزرسانی شد",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update customer user role (admin only)
+// @route   PUT /api/customers/:id/user-role
+// @access  Private (Admin)
+export const updateCustomerUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["user", "admin", "support"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "نقش نامعتبر است",
+      });
+    }
+
+    // Get user associated with this customer
+    const userResult = await query(
+      "SELECT id FROM users WHERE customer_id = $1",
+      [id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "کاربر مرتبط با این مشتری یافت نشد",
+      });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    // Prevent admin from changing their own role
+    if (userId === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "نمی‌توانید نقش خود را تغییر دهید",
+      });
+    }
+
+    // Update user role
+    const result = await query(
+      `UPDATE users
+       SET role = $1
+       WHERE id = $2
+       RETURNING id, name, username, email, role, phone, is_active`,
+      [role, userId]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "نقش کاربر با موفقیت تغییر کرد",
       data: result.rows[0],
     });
   } catch (error) {

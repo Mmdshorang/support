@@ -178,7 +178,7 @@ export const getMe = async (req, res, next) => {
 // @access  Private
 export const updateDetails = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, username, email, phone } = req.body;
 
     const fieldsToUpdate = [];
     const values = [];
@@ -187,6 +187,25 @@ export const updateDetails = async (req, res, next) => {
     if (name) {
       fieldsToUpdate.push(`name = $${paramCount}`);
       values.push(name);
+      paramCount++;
+    }
+
+    if (username) {
+      // Check if username is already taken by another user
+      const existingUser = await query(
+        "SELECT id FROM users WHERE username = $1 AND id != $2",
+        [username, req.user.id]
+      );
+
+      if (existingUser.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "نام کاربری قبلاً استفاده شده است",
+        });
+      }
+
+      fieldsToUpdate.push(`username = $${paramCount}`);
+      values.push(username);
       paramCount++;
     }
 
@@ -200,6 +219,13 @@ export const updateDetails = async (req, res, next) => {
       fieldsToUpdate.push(`phone = $${paramCount}`);
       values.push(phone);
       paramCount++;
+    }
+
+    if (fieldsToUpdate.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "هیچ فیلدی برای به‌روزرسانی ارسال نشده است",
+      });
     }
 
     values.push(req.user.id);

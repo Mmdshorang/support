@@ -116,6 +116,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/users", userRoutes);
 
 // Error handling
 app.use(notFound);
