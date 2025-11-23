@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Search, UserPlus, Edit2, Trash2 } from "lucide-react";
+import { Search, UserPlus, Edit2, Trash2, X } from "lucide-react";
 import { customersApi, type Customer } from "../../../services/api/customers";
 import { requireAdmin } from "../../../lib/auth-guard";
+import SelectBox, { type Option } from "../../../components/common/SelectBox";
 
 export const Route = createFileRoute("/_admin/_customer/customers")({
   component: CustomerListPage,
@@ -57,12 +58,28 @@ const formatContractEndDate = (value?: string | null) => {
   return new Date(value).toLocaleDateString("fa-IR");
 };
 
+const roleOptions: Option[] = [
+  { value: "user", label: "کاربر" },
+  { value: "admin", label: "مدیر" },
+  { value: "support", label: "پشتیبان" },
+];
+
+
 function CustomerListPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
   // Fetch customers from API
   useEffect(() => {
@@ -106,6 +123,62 @@ function CustomerListPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1); // Reset to first page on search
+  };
+
+  const handleEdit = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setEditForm({
+      name: customer.name || "",
+      email: customer.email || "",
+      phone: customer.phone || "",
+      company: customer.company || "",
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCustomer) return;
+
+    try {
+      setIsSaving(true);
+      await customersApi.updateCustomer(editingCustomer.id, editForm);
+      toast.success("اطلاعات مشتری با موفقیت به‌روزرسانی شد");
+      setEditingCustomer(null);
+      
+      // Refresh customers list
+      const response = await customersApi.getCustomers({
+        page,
+        limit: 10,
+        search: searchQuery || undefined,
+        sortBy: "created_at",
+        sortOrder: "desc",
+      });
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      toast.error("خطا در به‌روزرسانی اطلاعات مشتری");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRoleChange = async (customerId: string, newRole: "user" | "admin" | "support") => {
+    try {
+      setUpdatingRole(customerId);
+      await customersApi.updateCustomerUserRole(customerId, newRole);
+      
+      setCustomers((prev) =>
+        prev.map((customer) =>
+          customer.id === customerId ? { ...customer, user_role: newRole } : customer
+        )
+      );
+      
+      toast.success("نقش کاربر با موفقیت تغییر کرد");
+    } catch (error: unknown) {
+      console.error("Error updating user role:", error);
+      toast.error("خطا در تغییر نقش کاربر");
+    } finally {
+      setUpdatingRole(null);
+    }
   };
 
   return (
@@ -164,6 +237,9 @@ function CustomerListPage() {
                   شرکت/مجموعه
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
+                  نقش
+                </th>
+                <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
                   تاریخ ثبت
                 </th>
                 <th className="bg-slate-100/70 px-3 py-2 dark:bg-slate-800/70">
@@ -178,7 +254,7 @@ function CustomerListPage() {
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="rounded-3xl bg-white/80 py-8 text-center text-sm font-medium text-slate-400 dark:bg-slate-900/70 dark:text-slate-300"
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -190,7 +266,7 @@ function CustomerListPage() {
               ) : customers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="rounded-3xl bg-white/80 py-8 text-center text-sm font-medium text-slate-400 dark:bg-slate-900/70 dark:text-slate-300"
                   >
                     {searchQuery
@@ -215,6 +291,34 @@ function CustomerListPage() {
                     </td>
                     <td className="px-3 py-4 text-sm">
                       {customer.company || "-"}
+                    </td>
+                    <td className="px-3 py-4">
+                      {customer.user_role ? (
+                        <div className="flex items-center gap-2">
+                          {updatingRole === customer.id ? (
+                            <div className="flex items-center justify-center">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+                            </div>
+                          ) : (
+                            <SelectBox
+                              options={roleOptions}
+                              value={roleOptions.find((opt) => opt.value === customer.user_role) || null}
+                              onChange={(value) => {
+                                const selectedRole = value as Option;
+                                if (selectedRole && selectedRole.value !== customer.user_role) {
+                                  handleRoleChange(customer.id, selectedRole.value as "user" | "admin" | "support");
+                                }
+                              }}
+                              placeholder="انتخاب نقش"
+                              searchable={false}
+                              multiple={false}
+                              creatable={false}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400 dark:text-slate-500">بدون کاربر</span>
+                      )}
                     </td>
                     <td className="px-3 py-4 text-xs text-slate-500 dark:text-slate-300">
                       {new Date(customer.created_at).toLocaleDateString(
@@ -243,9 +347,7 @@ function CustomerListPage() {
                     <td className="rounded-l-3xl px-3 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() =>
-                            alert("ویرایش مشتری - به زودی اضافه می‌شود")
-                          }
+                          onClick={() => handleEdit(customer)}
                           className="rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-600"
                           title="ویرایش"
                         >
@@ -292,6 +394,92 @@ function CustomerListPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                ویرایش اطلاعات مشتری
+              </h2>
+              <button
+                onClick={() => setEditingCustomer(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  نام
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  ایمیل
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  شماره تماس
+                </label>
+                <input
+                  type="tel"
+                  dir="ltr"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  شرکت/مجموعه
+                </label>
+                <input
+                  type="text"
+                  value={editForm.company}
+                  onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setEditingCustomer(null)}
+                className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-xl transition"
+              >
+                انصراف
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={isSaving}
+                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? "در حال ذخیره..." : "ذخیره"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -152,12 +152,12 @@ export function StatusTicketPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
           وضعیت تیکت‌ها
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-300">
           پیگیری لحظه‌ای تیکت‌های فعال، تغییر نوع پشتیبانی و مدیریت وضعیت بر
           اساس SLA.
         </p>
@@ -196,16 +196,16 @@ export function StatusTicketPage() {
         ))}
       </section>
 
-      <section className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
+      <section className="rounded-2xl sm:rounded-3xl border border-slate-200/70 bg-white/80 p-4 sm:p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
               جدول تیکت‌ها
             </h2>
           </div>
         </div>
 
-        <div className="mt-5 overflow-x-auto">
+        <div className="mt-4 sm:mt-5 overflow-x-auto -mx-4 sm:mx-0">
           <table className="min-w-full border-separate border-spacing-y-3 text-sm">
             <thead>
               <tr className="text-right text-xs font-semibold text-slate-500 dark:text-slate-300">
@@ -305,31 +305,37 @@ export function StatusTicketPage() {
                     <td className="px-3 py-4 text-xs font-medium text-slate-500 dark:text-slate-300">
                       {ticket.createdAt}
                     </td>
-                    <td className="rounded-l-3xl px-3 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="rounded-l-3xl px-2 sm:px-3 py-3 sm:py-4 text-center">
+                      <div className="flex items-center justify-center gap-1 sm:gap-2">
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
                             handleCloseTicket(ticket.id);
                           }}
+                          className="p-1 sm:p-0"
+                          aria-label="بستن تیکت"
                         >
-                          <CircleX className="text-yellow-500 cursor-pointer size-4.5" />
+                          <CircleX className="text-yellow-500 cursor-pointer size-4 sm:size-4.5" />
                         </button>
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
                             openTicketConversation(ticket.id);
                           }}
+                          className="p-1 sm:p-0"
+                          aria-label="مشاهده تیکت"
                         >
-                          <Eye className="text-blue-500 cursor-pointer size-4.5" />
+                          <Eye className="text-blue-500 cursor-pointer size-4 sm:size-4.5" />
                         </button>
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
                             handleDelete(ticket.id);
                           }}
+                          className="p-1 sm:p-0"
+                          aria-label="حذف تیکت"
                         >
-                          <Trash className="text-red-500 cursor-pointer size-4.5" />
+                          <Trash className="text-red-500 cursor-pointer size-4 sm:size-4.5" />
                         </button>
                       </div>
                     </td>

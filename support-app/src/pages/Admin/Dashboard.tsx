@@ -216,13 +216,13 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
           خانه
         </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-300">
           مرور سریع وضعیت تیکت‌ها و عملکرد تیم‌ها
         </p>
       </div>
@@ -256,9 +256,9 @@ export default function AdminDashboard() {
       </section>
 
       {/* Main Table */}
-      <section className="space-y-4 rounded-3xl border border-slate-200/70 bg-white/80 p-6 dark:border-slate-800/60 dark:bg-slate-900/70">
+      <section className="space-y-4 rounded-2xl sm:rounded-3xl border border-slate-200/70 bg-white/80 p-4 sm:p-6 dark:border-slate-800/60 dark:bg-slate-900/70">
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-          <h2 className="text-lg font-semibold">جدول تیکت ها</h2>
+          <h2 className="text-base sm:text-lg font-semibold">جدول تیکت ها</h2>
 
           <div className="relative w-full sm:w-auto">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -284,23 +284,23 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            <table className="min-w-full table-fixed border-separate border-spacing-y-3 text-sm">
-              <thead>
-                <tr className="text-right text-xs font-semibold text-slate-500">
-                  <th className="rounded-r-xl bg-slate-100 px-3 py-2">تیکت</th>
-                  <th className="bg-slate-100 px-3 py-2">مشتری</th>
-                  <th className="bg-slate-100 px-3 py-2">شماره تماس</th>
-                  <th className="bg-slate-100 px-3 py-2">دسته بندی</th>
-                  <th className="bg-slate-100 px-3 py-2">مشکل</th>
-                  <th className="bg-slate-100 px-3 py-2">نوع پشتیبانی</th>
-                  <th className="bg-slate-100 px-3 py-2">راه‌حل</th>
-                  <th className="bg-slate-100 px-3 py-2">وضعیت</th>
-
-                  <th className="rounded-l-xl bg-slate-100 px-3 py-2">
-                    تاریخ ثبت
-                  </th>
-                </tr>
-              </thead>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-full table-fixed border-separate border-spacing-y-3 text-sm">
+                <thead>
+                  <tr className="text-right text-xs font-semibold text-slate-500">
+                    <th className="rounded-r-xl bg-slate-100 px-2 sm:px-3 py-2">تیکت</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2 hidden sm:table-cell">مشتری</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2 hidden md:table-cell">شماره تماس</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2 hidden lg:table-cell">دسته بندی</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2">مشکل</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2 hidden lg:table-cell">نوع پشتیبانی</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2 hidden xl:table-cell">راه‌حل</th>
+                    <th className="bg-slate-100 px-2 sm:px-3 py-2">وضعیت</th>
+                    <th className="rounded-l-xl bg-slate-100 px-2 sm:px-3 py-2 hidden md:table-cell">
+                      تاریخ ثبت
+                    </th>
+                  </tr>
+                </thead>
 
               <tbody>
                 {filteredTickets.map((ticket) => {
@@ -333,8 +333,8 @@ export default function AdminDashboard() {
                           : ""
                       }`}
                     >
-                      <td className="px-3 py-4 rounded-r-2xl">
-                        <div className="flex items-center gap-2 font-semibold">
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-r-2xl">
+                        <div className="flex items-center gap-2 font-semibold text-xs sm:text-sm">
                           <span>#{ticket.id}</span>
                           {hasUnread && (
                             <span className="h-2 w-2 rounded-full bg-rose-500" />
@@ -342,34 +342,34 @@ export default function AdminDashboard() {
                         </div>
                       </td>
 
-                      <td className="px-3 py-4">
-                        <p className="font-medium">{customerName}</p>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 hidden sm:table-cell">
+                        <p className="font-medium text-xs sm:text-sm">{customerName}</p>
                       </td>
-                      <td className="px-3 py-4">
-                        <p className="font-medium">{customerPhone}</p>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 hidden md:table-cell">
+                        <p className="font-medium text-xs sm:text-sm">{customerPhone}</p>
                       </td>
-                      <td className="px-1 py-4">
-                        <p className="text-sm">{ticket.category_name}</p>
+                      <td className="px-1 sm:px-2 py-3 sm:py-4 hidden lg:table-cell">
+                        <p className="text-xs sm:text-sm">{ticket.category_name}</p>
                       </td>
-                      <td className="px-1 py-4">
-                        <p className="text-sm">{ticket.description}</p>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4">
+                        <p className="text-xs sm:text-sm line-clamp-2">{ticket.description}</p>
                       </td>
 
-                      <td className="px-1 py-4">
+                      <td className="px-1 sm:px-2 py-3 sm:py-4 hidden lg:table-cell">
                         <span
-                          className={`px-3 py-1 text-xs rounded-xl font-semibold ${SUPPORT_BADGES[supportType]}`}
+                          className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${SUPPORT_BADGES[supportType]}`}
                         >
                           {SUPPORT_LABELS[supportType]}
                         </span>
                       </td>
-                      <td className="px-1 py-4">
-                        <p className="text-sm">
+                      <td className="px-1 sm:px-2 py-3 sm:py-4 hidden xl:table-cell">
+                        <p className="text-xs sm:text-sm line-clamp-2">
                           {ticket.solution || "بدون جواب"}
                         </p>
                       </td>
-                      <td className="px-3 py-4">
+                      <td className="px-2 sm:px-3 py-3 sm:py-4">
                         <span
-                          className={`px-3 py-1 text-xs rounded-xl font-semibold ${
+                          className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${
                             STATUS_STYLES[ticket.status]
                           }`}
                         >
@@ -377,7 +377,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
 
-                      <td className="px-3 py-4 rounded-l-2xl text-xs">
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-l-2xl text-xs hidden md:table-cell">
                         {new Date(ticket.created_at).toLocaleDateString(
                           "fa-IR"
                         )}
@@ -386,7 +386,8 @@ export default function AdminDashboard() {
                   );
                 })}
               </tbody>
-            </table>
+              </table>
+            </div>
 
             {totalPages > 1 && (
               <Pagination
