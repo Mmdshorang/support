@@ -1,15 +1,14 @@
 {
   "app": "support-front",
-  "platform": "docker",
   "port": 80,
   "build": {
     "location": "iran",
     "args": {
-      "VITE_API_URL": "https://tender-mendel-6y7weckrv.liara.run/api"
+      "VITE_API_URL": "https://support-back.liara.run/api"
     }
   },
   "disks": [],
   "env": {
-    "VITE_API_URL": "https://tender-mendel-6y7weckrv.liara.run/api"
+    "VITE_API_URL": "https://support-back.liara.run/api"
   }
 }

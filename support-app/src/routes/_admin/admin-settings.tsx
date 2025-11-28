@@ -50,6 +50,7 @@ function SettingsPage() {
       setUser((prev) => (prev ? { ...prev, ...response.data } : response.data));
       setProfileForm({
         name: response.data.name || "",
+        username: response.data.username || profileForm.username || "",
         email: response.data.email || "",
         phone: response.data.phone || "",
       });
