@@ -92,7 +92,12 @@ export const getTickets = async (req, res, next) => {
        LEFT JOIN ticket_categories cat ON t.category_id = cat.id
        LEFT JOIN users a ON t.assigned_to = a.id
        ${whereClause}
-       ORDER BY t.${sortBy} ${sortOrder}
+       ORDER BY 
+         CASE 
+           WHEN t.status NOT IN ('پاسخ داده شده', 'بسته شده') THEN 0
+           ELSE 1
+         END,
+         t.${sortBy} ${sortOrder}
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
       values
     );

@@ -1,7 +1,7 @@
 # مرحله build
 FROM node:20-alpine AS builder
 
-ARG VITE_API_URL=https://tender-mendel-6y7weckrv.liara.run/api
+ARG VITE_API_URL=https://support-back.liara.run/api
 
 WORKDIR /app
 

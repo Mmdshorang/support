@@ -24,7 +24,10 @@ const isContractExpired = (contractEndDate) => {
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { name, username, password, role = "user", email } = req.body;
+    const { name, username, password, email } = req.body;
+
+    // Always set role to "user" for new registrations (admin can change it later)
+    const role = "user";
 
     // Check if user exists with this username
     const existingUser = await query(
@@ -43,7 +46,7 @@ export const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user with default role "user"
     const result = await query(
       `INSERT INTO users (name, username, email, password, role)
        VALUES ($1, $2, $3, $4, $5)

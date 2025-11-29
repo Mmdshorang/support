@@ -4,11 +4,11 @@ const { Pool } = pg;
 
 // Database configuration - hardcoded values
 const dbConfig = {
-  host: process.env.DB_HOST || "damavand.liara.cloud",
-  port: parseInt(process.env.DB_PORT || "32884"),
+  host: process.env.DB_HOST || "monte-rosa.liara.cloud",
+  port: parseInt(process.env.DB_PORT || "32687"),
   database: process.env.DB_NAME || "support_db",
   user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "81lW3Mnd1PHTwdZPH7HWUaVT",
+  password: process.env.DB_PASSWORD || "2h6K66YCuPggSqCWe1Guzmkn",
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000, // Increased to 10 seconds for remote connections
