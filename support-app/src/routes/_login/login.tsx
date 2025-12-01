@@ -196,6 +196,9 @@ function LoginPage() {
               </>
             )}
           </button>
+          <div className="text-white text-center text-sm shadow-2xl rounded-2xl p-3 bg-gray-800">
+            شماره تماس پشتیبانی : 09166429176
+          </div>
         </form>
       </div>
     </div>
