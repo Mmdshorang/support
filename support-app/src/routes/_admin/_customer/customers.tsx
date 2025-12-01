@@ -223,7 +223,7 @@ function CustomerListPage() {
 
       {/* Customers Table */}
       <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/70">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[400px]">
           <table className="min-w-full border-separate border-spacing-y-3 text-sm">
             <thead>
               <tr className="text-right text-xs font-semibold text-slate-500 dark:text-slate-300">
@@ -424,7 +424,7 @@ function CustomerListPage() {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   ایمیل
                 </label>
@@ -434,7 +434,7 @@ function CustomerListPage() {
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">

@@ -289,8 +289,8 @@ export default function AdminDashboard() {
                 <thead>
                   <tr className="text-right text-xs font-semibold text-slate-700 dark:text-slate-200">
                     <th className="rounded-r-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">تیکت</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden sm:table-cell">مشتری</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden md:table-cell">شماره تماس</th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden sm:table-cell min-w-40">مشتری</th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden md:table-cell min-w-30">شماره تماس</th>
                     <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden lg:table-cell">دسته بندی</th>
                     <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">مشکل</th>
                     <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden lg:table-cell">نوع پشتیبانی</th>
@@ -366,7 +366,7 @@ export default function AdminDashboard() {
                             {ticket.solution || "بدون جواب"}
                           </p>
                         </td>
-                        <td className="px-2 sm:px-3 py-3 sm:py-4">
+                        <td className="px-2 sm:px-3 py-3 sm:py-4 min-w-[100px]">
                           <span
                             className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${STATUS_STYLES[ticket.status]
                               }`}

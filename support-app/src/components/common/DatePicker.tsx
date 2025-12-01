@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import moment from "jalali-moment";
 import { Calendar, X, ChevronLeft, ChevronRight } from "lucide-react";
 
+moment.locale("fa");
+
 type Props = {
   value?: string | null;
   onChange?: (jDate: string | null) => void;
@@ -215,7 +217,7 @@ export default function JalaliDatePicker({
       {open && (
         <div
           ref={popupRef}
-          className={`absolute z-50 w-80 bg-blue-100 dark:bg-gray-700 rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 p-4 transition-transform duration-150`}
+          className={`absolute z-50 w-80 bg-blue-100 dark:bg-gray-700 rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 p-2 transition-transform duration-150`}
           style={{
             position: "absolute",
             right: 0,
@@ -276,7 +278,7 @@ export default function JalaliDatePicker({
                   key={idx}
                  
                   onClick={() => d && selectDate(d)}
-                  className={`h-9 flex items-center justify-center rounded-full transition
+                  className={`h-7 flex items-center justify-center rounded-full transition
                     ${!d ? "opacity-0 pointer-events-none" : ""}
                     ${isDisabled ? "text-gray-300 cursor-not-allowed" : "dark:hover:bg-blue-500 hover:bg-blue-300"}
                     ${isToday ? "ring-2 ring-indigo-300" : ""}
