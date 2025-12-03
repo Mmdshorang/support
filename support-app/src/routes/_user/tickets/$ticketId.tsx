@@ -478,12 +478,13 @@ function TicketDetailPage() {
           </button>
         </div>
       ) : (
-        <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
-          <div className="text-sm font-semibold text-white">راه‌حل</div>
-          <div className="mt-2 text-white/90">
-            {ticket.solution || "راه‌حلی ثبت نشده است"}
-          </div>
-        </div>
+        // <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm dark:border-slate-800/60 dark:bg-blue-800">
+        //   <div className="text-sm font-semibold text-white">راه‌حل</div>
+        //   <div className="mt-2 text-white/90">
+        //     {ticket.solution || "راه‌حلی ثبت نشده است"}
+        //   </div>
+        // </div>
+        <></>
       )}
     </div>
   );

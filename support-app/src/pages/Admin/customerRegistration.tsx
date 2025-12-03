@@ -24,6 +24,9 @@ export default function CustomerRegistrationForm() {
     contractTo: "",
     contractTier: "standard",
   });
+
+  // add unlimited flag
+  const [contractUnlimited, setContractUnlimited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
   const [userCredentials, setUserCredentials] = useState<{
@@ -55,15 +58,20 @@ export default function CustomerRegistrationForm() {
       setIsSubmitting(true);
 
       const contractStartISO = jalaliToISODate(form.contractFrom);
-      const contractEndISO = jalaliToISODate(form.contractTo);
+      const contractEndISO = contractUnlimited
+        ? null
+        : jalaliToISODate(form.contractTo);
 
-      if (!contractStartISO || !contractEndISO) {
+      if (!contractStartISO || (!contractUnlimited && !contractEndISO)) {
         toast.error("لطفاً تاریخ شروع و پایان قرارداد را به درستی انتخاب کنید");
         setIsSubmitting(false);
         return;
       }
 
-      if (new Date(contractEndISO) < new Date(contractStartISO)) {
+      if (
+        !contractUnlimited &&
+        new Date(contractEndISO as string) < new Date(contractStartISO)
+      ) {
         toast.error("تاریخ پایان قرارداد باید بعد از تاریخ شروع باشد");
         setIsSubmitting(false);
         return;
@@ -78,6 +86,7 @@ export default function CustomerRegistrationForm() {
         company: form.companyName,
         contract_start_date: contractStartISO,
         contract_end_date: contractEndISO,
+        contract_unlimited: contractUnlimited,
         contract_tier: form.contractTier,
       });
 
@@ -97,6 +106,7 @@ export default function CustomerRegistrationForm() {
           contractTo: "",
           contractTier: "standard",
         });
+        setContractUnlimited(false);
 
         setTimeout(() => {
           navigate({ to: "/dashboard" });
@@ -124,6 +134,7 @@ export default function CustomerRegistrationForm() {
       contractTo: "",
       contractTier: "standard",
     });
+    setContractUnlimited(false);
 
     // Navigate to dashboard
     navigate({ to: "/dashboard" });
@@ -235,11 +246,26 @@ export default function CustomerRegistrationForm() {
               />
             </div>
             <div className="flex gap-2 space-y-2 text-xs text-slate-500 dark:text-slate-300">
-              <span className="font-semibold mt-2">تاریخ پایان قرارداد</span>
-              <JalaliDatePicker
-                value={form.contractTo}
-                onChange={(value) => handleChange("contractTo")(value ?? "")}
-              />
+              <div className="flex flex-col">
+                <span className="font-semibold mb-2">تاریخ پایان قرارداد</span>
+                <div className="flex items-center gap-3">
+                  <JalaliDatePicker
+                    value={form.contractTo}
+                    onChange={(value) =>
+                      handleChange("contractTo")(value ?? "")
+                    }
+                    disabled={contractUnlimited}
+                  />
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={contractUnlimited}
+                      onChange={(e) => setContractUnlimited(e.target.checked)}
+                    />
+                    <span className="text-sm">قرارداد نامحدود</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex justify-center">

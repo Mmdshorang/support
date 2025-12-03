@@ -74,7 +74,8 @@ function LoginPage() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      const errorMessage = error?.response?.data?.message || "خطا در ورود به سیستم";
+      const errorMessage =
+        error?.response?.data?.message || "خطا در ورود به سیستم";
       toast.error(errorMessage);
       setIsLoading(false);
     }
@@ -92,7 +93,9 @@ function LoginPage() {
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
             پشتیبانی حسابان
           </h1>
-          <p className="text-slate-500 dark:text-slate-300 mt-2 text-lg">ورود به سامانه</p>
+          <p className="text-slate-500 dark:text-slate-300 mt-2 text-lg">
+            ورود به سامانه
+          </p>
         </div>
 
         <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
@@ -176,7 +179,6 @@ function LoginPage() {
                 مرا به خاطر بسپار
               </label>
             </div>
-        
           </div>
 
           <button
@@ -197,7 +199,10 @@ function LoginPage() {
             )}
           </button>
           <div className="text-white text-center text-sm shadow-2xl rounded-2xl p-3 bg-gray-800">
-            شماره تماس پشتیبانی : 09166429176
+            شماره تماس پشتیبانی:{" "}
+            <span className="font-bold text-green-400">06142226578</span>
+            <span className="text-gray-300 mx-2">{" "} | {" "}</span>
+            <span className="font-bold text-green-400">09166429176</span>
           </div>
         </form>
       </div>

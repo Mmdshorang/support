@@ -87,12 +87,14 @@ export const getCustomers = async (req, res, next) => {
         cu.username as user_username,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
         CASE
+          WHEN c.contract_unlimited THEN 'active'
           WHEN c.contract_end_date IS NULL THEN 'unknown'
           WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
           WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
           ELSE 'active'
         END as contract_status,
         CASE
+          WHEN c.contract_unlimited THEN NULL
           WHEN c.contract_end_date IS NULL THEN NULL
           ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
         END as contract_days_remaining
@@ -133,16 +135,18 @@ export const getCustomer = async (req, res, next) => {
         u.name as created_by_name,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id AND status != 'بسته شده') as open_ticket_count,
-        CASE
-          WHEN c.contract_end_date IS NULL THEN 'unknown'
-          WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
-          WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
-          ELSE 'active'
-        END as contract_status,
-        CASE
-          WHEN c.contract_end_date IS NULL THEN NULL
-          ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
-        END as contract_days_remaining
+          CASE
+            WHEN c.contract_unlimited THEN 'active'
+            WHEN c.contract_end_date IS NULL THEN 'unknown'
+            WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
+            WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+            ELSE 'active'
+          END as contract_status,
+          CASE
+            WHEN c.contract_unlimited THEN NULL
+            WHEN c.contract_end_date IS NULL THEN NULL
+            ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
+          END as contract_days_remaining
        FROM customers c
        LEFT JOIN users u ON c.created_by = u.id
        WHERE c.id = $1`,
@@ -181,6 +185,7 @@ export const createCustomer = async (req, res, next) => {
       notes,
       contract_start_date,
       contract_end_date,
+      contract_unlimited,
       contract_tier,
     } = req.body;
 
@@ -229,7 +234,9 @@ export const createCustomer = async (req, res, next) => {
     }
 
     const contractStartISO = toISODate(contract_start_date, "شروع");
-    const contractEndISO = toISODate(contract_end_date, "پایان");
+    let contractEndISO = toISODate(contract_end_date, "پایان");
+    const isUnlimited = !!contract_unlimited;
+    if (isUnlimited) contractEndISO = null;
 
     if (contractStartISO && contractEndISO) {
       const start = new Date(contractStartISO);
@@ -246,8 +253,8 @@ export const createCustomer = async (req, res, next) => {
     const tier = normalizeTier(contract_tier);
 
     const result = await query(
-      `INSERT INTO customers (name, email, phone, company, address, city, country, notes, contract_start_date, contract_end_date, contract_tier, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `INSERT INTO customers (name, email, phone, company, address, city, country, notes, contract_start_date, contract_end_date, contract_unlimited, contract_tier, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         trimmedName,
@@ -260,6 +267,7 @@ export const createCustomer = async (req, res, next) => {
         notes || null,
         contractStartISO,
         contractEndISO,
+        isUnlimited,
         tier,
         req.user.id,
       ]
@@ -309,10 +317,10 @@ export const createCustomer = async (req, res, next) => {
       userCredentials = { username, password };
     } else {
       // If user exists, link the customer to existing user
-      await query(
-        `UPDATE users SET customer_id = $1 WHERE username = $2`,
-        [customer.id, username]
-      );
+      await query(`UPDATE users SET customer_id = $1 WHERE username = $2`, [
+        customer.id,
+        username,
+      ]);
     }
 
     res.status(201).json({
@@ -437,6 +445,16 @@ export const updateCustomer = async (req, res, next) => {
       values.push(endValue);
       paramCount++;
       nextContractEnd = endValue;
+    }
+
+    if (contract_unlimited !== undefined) {
+      const val = !!contract_unlimited;
+      fieldsToUpdate.push(`contract_unlimited = $${paramCount}`);
+      values.push(val);
+      paramCount++;
+      if (val) {
+        nextContractEnd = null;
+      }
     }
 
     if (contract_tier !== undefined) {
