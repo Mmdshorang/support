@@ -69,9 +69,10 @@ export default function AdminDashboard() {
         const response = await ticketsApi.getTickets({
           page,
           limit: PAGE_SIZE,
-          sortBy: "updated_at",
+          sortBy: "id",
           sortOrder: "desc",
         });
+
 
         setTickets(response.data);
         if (response.pagination) {
@@ -169,22 +170,22 @@ export default function AdminDashboard() {
         prev.map((ticket) =>
           ticket.id === selectedTicket.id
             ? {
-              ...ticket,
-              status: detailForm.status,
-              support_type: detailForm.supportType,
-              solution: detailForm.solution,
-            }
+                ...ticket,
+                status: detailForm.status,
+                support_type: detailForm.supportType,
+                solution: detailForm.solution,
+              }
             : ticket
         )
       );
       setSelectedTicket((prev) =>
         prev
           ? {
-            ...prev,
-            status: detailForm.status,
-            support_type: detailForm.supportType,
-            solution: detailForm.solution,
-          }
+              ...prev,
+              status: detailForm.status,
+              support_type: detailForm.supportType,
+              solution: detailForm.solution,
+            }
           : prev
       );
       toast.success("تغییرات با موفقیت ذخیره شد");
@@ -284,19 +285,35 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <table className="min-w-full table-fixed border-separate border-spacing-y-3 text-sm">
+            <div className="mt-4 sm:mt-5 overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-full border-separate border-spacing-y-3 text-sm">
                 <thead>
                   <tr className="text-right text-xs font-semibold text-slate-700 dark:text-slate-200">
-                    <th className="rounded-r-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">تیکت</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden sm:table-cell min-w-40">مشتری</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden md:table-cell min-w-30">شماره تماس</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden lg:table-cell">دسته بندی</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">مشکل</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden lg:table-cell">نوع پشتیبانی</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden xl:table-cell">راه‌حل</th>
-                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">وضعیت</th>
-                    <th className="rounded-l-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 hidden md:table-cell">
+                    <th className="rounded-r-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      تیکت
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 min-w-40">
+                      مشتری
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 min-w-30">
+                      شماره تماس
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      دسته بندی
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 min-w-30">
+                      مشکل
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      نوع پشتیبانی
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      راه‌حل
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      وضعیت
+                    </th>
+                    <th className="rounded-l-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
                       تاریخ ثبت
                     </th>
                   </tr>
@@ -305,7 +322,9 @@ export default function AdminDashboard() {
                 <tbody>
                   {filteredTickets.map((ticket) => {
                     const supportType: SupportType =
-                      ticket.support_type === "inPerson" ? "inPerson" : "remote";
+                      ticket.support_type === "inPerson"
+                        ? "inPerson"
+                        : "remote";
                     const hasUnread =
                       !!ticket.admin_unread_count &&
                       ticket.admin_unread_count > 0;
@@ -327,10 +346,11 @@ export default function AdminDashboard() {
                       <tr
                         key={ticket.id}
                         onClick={() => handleSelectTicket(ticket)}
-                        className={`rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 ${isActive
-                          ? "ring-2 ring-indigo-200 dark:ring-indigo-500"
-                          : ""
-                          }`}
+                        className={`rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 ${
+                          isActive
+                            ? "ring-2 ring-indigo-200 dark:ring-indigo-500"
+                            : ""
+                        }`}
                       >
                         <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-r-2xl">
                           <div className="flex items-center gap-2 font-semibold text-xs sm:text-sm">
@@ -341,41 +361,50 @@ export default function AdminDashboard() {
                           </div>
                         </td>
 
-                        <td className="px-2 sm:px-3 py-3 sm:py-4 hidden sm:table-cell">
-                          <p className="font-medium text-xs sm:text-sm">{customerName}</p>
-                        </td>
-                        <td className="px-2 sm:px-3 py-3 sm:py-4 hidden md:table-cell">
-                          <p className="font-medium text-xs sm:text-sm">{customerPhone}</p>
-                        </td>
-                        <td className="px-1 sm:px-2 py-3 sm:py-4 hidden lg:table-cell">
-                          <p className="text-xs sm:text-sm">{ticket.category_name}</p>
+                        <td className="px-2 sm:px-3 py-3 sm:py-4">
+                          <p className="font-medium text-xs sm:text-sm">
+                            {customerName}
+                          </p>
                         </td>
                         <td className="px-2 sm:px-3 py-3 sm:py-4">
-                          <p className="text-xs sm:text-sm line-clamp-2">{ticket.description}</p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {customerPhone}
+                          </p>
+                        </td>
+                        <td className="px-1 sm:px-2 py-3 sm:py-4">
+                          <p className="text-xs sm:text-sm">
+                            {ticket.category_name}
+                          </p>
+                        </td>
+                        <td className="px-2 sm:px-3 py-3 sm:py-4">
+                          <p className="text-xs sm:text-sm line-clamp-2">
+                            {ticket.description}
+                          </p>
                         </td>
 
-                        <td className="px-1 sm:px-2 py-3 sm:py-4 hidden lg:table-cell">
+                        <td className="px-1 sm:px-2 py-3 sm:py-4 ">
                           <span
                             className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${SUPPORT_BADGES[supportType]}`}
                           >
                             {SUPPORT_LABELS[supportType]}
                           </span>
                         </td>
-                        <td className="px-1 sm:px-2 py-3 sm:py-4 hidden xl:table-cell">
+                        <td className="px-1 sm:px-2 py-3 sm:py-4 ">
                           <p className="text-xs sm:text-sm line-clamp-2">
                             {ticket.solution || "بدون جواب"}
                           </p>
                         </td>
                         <td className="px-2 sm:px-3 py-3 sm:py-4 min-w-[100px]">
                           <span
-                            className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${STATUS_STYLES[ticket.status]
-                              }`}
+                            className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${
+                              STATUS_STYLES[ticket.status]
+                            }`}
                           >
                             {ticket.status}
                           </span>
                         </td>
 
-                        <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-l-2xl text-xs hidden md:table-cell">
+                        <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-l-2xl text-xs">
                           {new Date(ticket.created_at).toLocaleDateString(
                             "fa-IR"
                           )}
@@ -459,9 +488,9 @@ export default function AdminDashboard() {
                 <strong>
                   {
                     SUPPORT_LABELS[
-                    (selectedTicket.support_type === "inPerson"
-                      ? "inPerson"
-                      : "remote") as SupportType
+                      (selectedTicket.support_type === "inPerson"
+                        ? "inPerson"
+                        : "remote") as SupportType
                     ]
                   }
                 </strong>
@@ -511,10 +540,11 @@ export default function AdminDashboard() {
                           supportType: type,
                         }))
                       }
-                      className={`flex-1 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${detailForm.supportType === type
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-100"
-                        : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
-                        }`}
+                      className={`flex-1 rounded-2xl border px-3 py-2 text-sm font-semibold transition ${
+                        detailForm.supportType === type
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/20 dark:text-indigo-100"
+                          : "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300"
+                      }`}
                     >
                       {SUPPORT_LABELS[type]}
                     </button>
@@ -634,10 +664,11 @@ function Pagination({ page, pageCount, onChange }: PaginationProps) {
             <button
               key={num}
               onClick={() => onChange(num)}
-              className={`px-3 py-1 rounded-lg text-xs ${num === page
-                ? "bg-white dark:bg-slate-900 shadow text-indigo-600"
-                : "text-slate-600 dark:text-slate-300 hover:bg-white/70"
-                }`}
+              className={`px-3 py-1 rounded-lg text-xs ${
+                num === page
+                  ? "bg-white dark:bg-slate-900 shadow text-indigo-600"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-white/70"
+              }`}
             >
               {num}
             </button>

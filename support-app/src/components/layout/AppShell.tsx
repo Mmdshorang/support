@@ -188,7 +188,6 @@ export default function AppShell({ children }: AppShellProps) {
     return <>{children}</>;
   }
 
-
   const effectiveSidebarOpen = mobileSidebarOpen || sidebarOpen;
 
   const handleSidebarState = (open: boolean) => {
@@ -230,6 +229,8 @@ export default function AppShell({ children }: AppShellProps) {
         <TopBar
           pageTitle={meta.title}
           subtitle={meta.subtitle}
+          onToggleSidebar={() => handleSidebarState(!mobileSidebarOpen)}
+          sidebarOpen={effectiveSidebarOpen}
         />
         <main className="flex-1 space-y-6 p-4 sm:p-6 lg:px-8 lg:py-6">
           {children}

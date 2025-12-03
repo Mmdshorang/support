@@ -17,6 +17,7 @@ export interface Customer {
   notes?: string | null;
   contract_start_date?: string | null;
   contract_end_date?: string | null;
+  contract_unlimited?: boolean | null;
   contract_tier?: ContractTier | null;
   contract_status?: ContractStatus;
   contract_days_remaining?: number | null;
@@ -37,7 +38,8 @@ export interface CreateCustomerData {
   address?: string;
   notes?: string;
   contract_start_date: string;
-  contract_end_date: string;
+  contract_end_date: string | null;
+  contract_unlimited?: boolean;
   contract_tier: ContractTier;
 }
 
@@ -49,6 +51,10 @@ export interface UpdateCustomerData {
   address?: string;
   notes?: string;
   is_active?: boolean;
+  contract_start_date?: string | null;
+  contract_end_date?: string | null;
+  contract_unlimited?: boolean;
+  contract_tier?: ContractTier | null;
 }
 
 export interface CustomerFilters {

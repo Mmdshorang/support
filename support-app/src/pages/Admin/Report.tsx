@@ -131,12 +131,12 @@ export default function TicketReport() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            {/* <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
               دانلود PDF
             </button>
             <button className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-100">
               اشتراک‌گذاری
-            </button>
+            </button> */}
           </div>
         </header>
 
@@ -146,7 +146,7 @@ export default function TicketReport() {
             placeholder="جستجو بر اساس مشتری، شماره یا توضیحات"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
+            className="rounded-xl border border-slate-200 h-10 mt-5 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/40"
           />
           <div className="flex flex-col gap-2 text-xs text-slate-500 dark:text-slate-300">
             <span className="font-semibold">از تاریخ</span>

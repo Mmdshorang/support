@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Search, UserPlus, Edit2, Trash2, X } from "lucide-react";
-import { customersApi, type Customer } from "../../../services/api/customers";
+import {
+  customersApi,
+  type Customer,
+  type UpdateCustomerData,
+} from "../../../services/api/customers";
 import { requireAdmin } from "../../../lib/auth-guard";
 import SelectBox, { type Option } from "../../../components/common/SelectBox";
 
@@ -16,12 +20,14 @@ export const Route = createFileRoute("/_admin/_customer/customers")({
 const statusMap = {
   active: {
     label: "فعال",
-    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
+    badge:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
     text: "text-emerald-600 dark:text-emerald-300",
   },
   warning: {
     label: "نیاز به تمدید",
-    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
+    badge:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
     text: "text-amber-600 dark:text-amber-300",
   },
   expired: {
@@ -31,31 +37,31 @@ const statusMap = {
   },
   unknown: {
     label: "نامشخص",
-    badge: "bg-slate-100 text-slate-600 dark:bg-slate-800/70 dark:text-slate-200",
+    badge:
+      "bg-slate-100 text-slate-600 dark:bg-slate-800/70 dark:text-slate-200",
     text: "text-slate-500 dark:text-slate-300",
   },
 } as const;
 
-const formatPhoneNumber = (phone?: string | null) => {
-  if (!phone) return "-";
-  const digits = phone.replace(/[^\d+]/g, "");
-  if (digits.length <= 4) return digits;
-  return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
-};
-
 const formatRemainingDays = (customer: Customer) => {
+  if (customer.contract_unlimited) return "نامحدود";
   if (!customer.contract_end_date) return "تاریخ قرارداد ثبت نشده";
-  const days = customer.contract_days_remaining ?? Math.ceil(
-    (new Date(customer.contract_end_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
-  );
+  const days =
+    customer.contract_days_remaining ??
+    Math.ceil(
+      (new Date(customer.contract_end_date).getTime() - Date.now()) /
+        (24 * 60 * 60 * 1000)
+    );
   if (days > 0) return `${days} روز باقی مانده`;
   if (days === 0) return "امروز به پایان می‌رسد";
   return `${Math.abs(days)} روز از پایان گذشته`;
 };
 
-const formatContractEndDate = (value?: string | null) => {
-  if (!value) return "نامشخص";
-  return new Date(value).toLocaleDateString("fa-IR");
+const formatContractEndDate = (customer?: Customer) => {
+  if (!customer) return "نامشخص";
+  if (customer.contract_unlimited) return "نامحدود";
+  if (!customer.contract_end_date) return "نامشخص";
+  return new Date(customer.contract_end_date).toLocaleDateString("fa-IR");
 };
 
 const roleOptions: Option[] = [
@@ -63,7 +69,6 @@ const roleOptions: Option[] = [
   { value: "admin", label: "مدیر" },
   { value: "support", label: "پشتیبان" },
 ];
-
 
 function CustomerListPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -77,6 +82,9 @@ function CustomerListPage() {
     email: "",
     phone: "",
     company: "",
+    contract_start_date: "",
+    contract_end_date: "",
+    contract_unlimited: false,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
@@ -132,6 +140,9 @@ function CustomerListPage() {
       email: customer.email || "",
       phone: customer.phone || "",
       company: customer.company || "",
+      contract_start_date: customer.contract_start_date || "",
+      contract_end_date: customer.contract_end_date || "",
+      contract_unlimited: !!customer.contract_unlimited,
     });
   };
 
@@ -140,10 +151,15 @@ function CustomerListPage() {
 
     try {
       setIsSaving(true);
-      await customersApi.updateCustomer(editingCustomer.id, editForm);
+      // Prepare payload: if unlimited, send contract_end_date as null and flag
+      const payload: UpdateCustomerData = { ...editForm } as UpdateCustomerData;
+      if (payload.contract_unlimited) {
+        payload.contract_end_date = null;
+      }
+      await customersApi.updateCustomer(editingCustomer.id, payload);
       toast.success("اطلاعات مشتری با موفقیت به‌روزرسانی شد");
       setEditingCustomer(null);
-      
+
       // Refresh customers list
       const response = await customersApi.getCustomers({
         page,
@@ -161,17 +177,22 @@ function CustomerListPage() {
     }
   };
 
-  const handleRoleChange = async (customerId: string, newRole: "user" | "admin" | "support") => {
+  const handleRoleChange = async (
+    customerId: string,
+    newRole: "user" | "admin" | "support"
+  ) => {
     try {
       setUpdatingRole(customerId);
       await customersApi.updateCustomerUserRole(customerId, newRole);
-      
+
       setCustomers((prev) =>
         prev.map((customer) =>
-          customer.id === customerId ? { ...customer, user_role: newRole } : customer
+          customer.id === customerId
+            ? { ...customer, user_role: newRole }
+            : customer
         )
       );
-      
+
       toast.success("نقش کاربر با موفقیت تغییر کرد");
     } catch (error: unknown) {
       console.error("Error updating user role:", error);
@@ -278,7 +299,7 @@ function CustomerListPage() {
                 customers.map((customer) => (
                   <tr
                     key={customer.id}
-                    className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-50 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800/70"
+                    className="rounded-3xl bg-white/80 text-slate-700 shadow-sm transition  dark:bg-slate-900/80 dark:text-slate-100 "
                   >
                     <td className="rounded-r-3xl px-3 py-4 font-semibold">
                       {customer.name}
@@ -287,7 +308,7 @@ function CustomerListPage() {
                       className="px-3 py-4 text-sm font-mono text-slate-600 dark:text-slate-200 text-left"
                       dir="ltr"
                     >
-                      {formatPhoneNumber(customer.phone)}
+                      {customer.phone}
                     </td>
                     <td className="px-3 py-4 text-sm">
                       {customer.company || "-"}
@@ -302,11 +323,24 @@ function CustomerListPage() {
                           ) : (
                             <SelectBox
                               options={roleOptions}
-                              value={roleOptions.find((opt) => opt.value === customer.user_role) || null}
+                              value={
+                                roleOptions.find(
+                                  (opt) => opt.value === customer.user_role
+                                ) || null
+                              }
                               onChange={(value) => {
                                 const selectedRole = value as Option;
-                                if (selectedRole && selectedRole.value !== customer.user_role) {
-                                  handleRoleChange(customer.id, selectedRole.value as "user" | "admin" | "support");
+                                if (
+                                  selectedRole &&
+                                  selectedRole.value !== customer.user_role
+                                ) {
+                                  handleRoleChange(
+                                    customer.id,
+                                    selectedRole.value as
+                                      | "user"
+                                      | "admin"
+                                      | "support"
+                                  );
                                 }
                               }}
                               placeholder="انتخاب نقش"
@@ -317,7 +351,9 @@ function CustomerListPage() {
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400 dark:text-slate-500">بدون کاربر</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                          بدون کاربر
+                        </span>
                       )}
                     </td>
                     <td className="px-3 py-4 text-xs text-slate-500 dark:text-slate-300">
@@ -328,19 +364,26 @@ function CustomerListPage() {
                     <td className="px-3 py-4">
                       <div className="flex flex-col gap-1 text-xs">
                         <span
-                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 font-bold ${statusMap[customer.contract_status ?? "unknown"].badge
-                            }`}
+                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 font-bold ${
+                            statusMap[customer.contract_status ?? "unknown"]
+                              .badge
+                          }`}
                         >
-                          {statusMap[customer.contract_status ?? "unknown"].label}
+                          {
+                            statusMap[customer.contract_status ?? "unknown"]
+                              .label
+                          }
                         </span>
                         <span
-                          className={`font-semibold ${statusMap[customer.contract_status ?? "unknown"].text
-                            }`}
+                          className={`font-semibold ${
+                            statusMap[customer.contract_status ?? "unknown"]
+                              .text
+                          }`}
                         >
                           {formatRemainingDays(customer)}
                         </span>
                         <span className="text-[11px] text-slate-400 dark:text-slate-400">
-                          پایان: {formatContractEndDate(customer.contract_end_date)}
+                          پایان: {formatContractEndDate(customer)}
                         </span>
                       </div>
                     </td>
@@ -419,7 +462,9 @@ function CustomerListPage() {
                 <input
                   type="text"
                   value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 />
               </div>
@@ -444,7 +489,9 @@ function CustomerListPage() {
                   type="tel"
                   dir="ltr"
                   value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, phone: e.target.value })
+                  }
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 />
               </div>
@@ -456,9 +503,69 @@ function CustomerListPage() {
                 <input
                   type="text"
                   value={editForm.company}
-                  onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, company: e.target.value })
+                  }
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    تاریخ شروع قرارداد
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.contract_start_date || ""}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        contract_start_date: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    تاریخ پایان قرارداد
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.contract_end_date || ""}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        contract_end_date: e.target.value,
+                      })
+                    }
+                    disabled={!!editForm.contract_unlimited}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:opacity-60"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={!!editForm.contract_unlimited}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          contract_unlimited: e.target.checked,
+                          contract_end_date: e.target.checked
+                            ? ""
+                            : editForm.contract_end_date,
+                        })
+                      }
+                    />
+                    <span className="text-sm">
+                      قرارداد نامحدود (پایان ندارد)
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
 

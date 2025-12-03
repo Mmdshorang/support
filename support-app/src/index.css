@@ -13,3 +13,11 @@
 		@apply min-h-screen;
 	}
 }
+
+/* Ensure tables inside overflow containers can scroll on small screens */
+@media (max-width: 640px) {
+  .overflow-x-auto > table,
+  .overflow-auto > table {
+    min-width: 1000px;
+  }
+}
