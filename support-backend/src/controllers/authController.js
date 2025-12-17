@@ -4,8 +4,11 @@ import { query } from "../config/database.js";
 
 // Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || "7d",
+  const jwtSecret =
+    process.env.JWT_SECRET || "support_system_super_secret_jwt_key_2024";
+  const jwtExpire = process.env.JWT_EXPIRE || "7d";
+  return jwt.sign({ id }, jwtSecret, {
+    expiresIn: jwtExpire,
   });
 };
 
@@ -21,7 +24,10 @@ const isContractExpired = (contractEndDate) => {
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { name, username, password, role = "user", email } = req.body;
+    const { name, username, password, email } = req.body;
+
+    // Always set role to "user" for new registrations (admin can change it later)
+    const role = "user";
 
     // Check if user exists with this username
     const existingUser = await query(
@@ -40,7 +46,7 @@ export const register = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user with default role "user"
     const result = await query(
       `INSERT INTO users (name, username, email, password, role)
        VALUES ($1, $2, $3, $4, $5)
@@ -175,7 +181,7 @@ export const getMe = async (req, res, next) => {
 // @access  Private
 export const updateDetails = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, username, email, phone } = req.body;
 
     const fieldsToUpdate = [];
     const values = [];
@@ -184,6 +190,25 @@ export const updateDetails = async (req, res, next) => {
     if (name) {
       fieldsToUpdate.push(`name = $${paramCount}`);
       values.push(name);
+      paramCount++;
+    }
+
+    if (username) {
+      // Check if username is already taken by another user
+      const existingUser = await query(
+        "SELECT id FROM users WHERE username = $1 AND id != $2",
+        [username, req.user.id]
+      );
+
+      if (existingUser.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "نام کاربری قبلاً استفاده شده است",
+        });
+      }
+
+      fieldsToUpdate.push(`username = $${paramCount}`);
+      values.push(username);
       paramCount++;
     }
 
@@ -197,6 +222,13 @@ export const updateDetails = async (req, res, next) => {
       fieldsToUpdate.push(`phone = $${paramCount}`);
       values.push(phone);
       paramCount++;
+    }
+
+    if (fieldsToUpdate.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "هیچ فیلدی برای به‌روزرسانی ارسال نشده است",
+      });
     }
 
     values.push(req.user.id);

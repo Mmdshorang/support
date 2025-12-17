@@ -1,4 +1,4 @@
-import  { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 
 export type Option = { value: string; label: string };
 
@@ -116,11 +116,9 @@ export default function SimpleSelect({
       <button
         type="button"
         onClick={() => !disabled && setOpen((s) => !s)}
-        className={`w-full min-w-[260px] flex items-center justify-between p-2.5 rounded-xl dark:bg-gray-800 bg-gray-100  text-black dark:text-white transition-all
-       
-        `}
-        aria-haspopup="listbox"
-        aria-expanded={open}
+        className={`w-full min-w-[260px] h-[42px] flex items-center justify-between 
+              p-2.5 rounded-xl dark:bg-gray-800 bg-gray-100 text-black dark:text-white 
+              overflow-hidden select-none`}
       >
         <div className="flex-1 flex flex-wrap gap-1 items-center">
           {normalizedValue.length ? (
@@ -155,11 +153,9 @@ export default function SimpleSelect({
       </button>
 
       <div
-        className={`absolute z-50 mt-1 w-full rounded-md shadow-md bg-gray-100 dark:bg-gray-800 border transition-all ${
-          open
-            ? "opacity-100 scale-100"
-            : "opacity-0 scale-95 pointer-events-none"
-        }`}
+        className={`absolute top-full left-0 z-[9999] w-full rounded-md shadow-md 
+              bg-gray-100 dark:bg-gray-800 border transition-all
+              ${open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}`}
       >
         {searchable && (
           <div className="p-2 border-b">

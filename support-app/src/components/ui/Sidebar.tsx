@@ -34,7 +34,7 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm transition-all duration-300 ease-in-out border-l border-slate-200/60 dark:border-slate-700/60 ${
+      className={`sticky top-0 h-screen z-20 bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm transition-all duration-300 ease-in-out border-l border-slate-200/60 dark:border-slate-700/60 ${
         sidebarOpen ? "w-64" : "w-20"
       }`}
     >
@@ -65,7 +65,7 @@ export default function Sidebar({
               className="flex rounded-lg p-2 hover:bg-gray-200 transition-colors dark:hover:bg-slate-700"
               aria-label={sidebarOpen ? "بستن منو" : "باز کردن منو"}
             >
-              {sidebarOpen && <ChevronLeft /> }
+              {sidebarOpen && <ChevronLeft />}
             </button>
           </div>
         </div>

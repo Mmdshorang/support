@@ -82,21 +82,27 @@ export const getCustomers = async (req, res, next) => {
       `SELECT
         c.*,
         u.name as created_by_name,
+        cu.id as user_id,
+        cu.role as user_role,
+        cu.username as user_username,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
         CASE
+          WHEN c.contract_unlimited THEN 'active'
           WHEN c.contract_end_date IS NULL THEN 'unknown'
           WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
           WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
           ELSE 'active'
         END as contract_status,
         CASE
+          WHEN c.contract_unlimited THEN NULL
           WHEN c.contract_end_date IS NULL THEN NULL
           ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
         END as contract_days_remaining
        FROM customers c
        LEFT JOIN users u ON c.created_by = u.id
+       LEFT JOIN users cu ON cu.customer_id = c.id
        ${whereClause}
-       ORDER BY c.${sortField} ${sortDirection}
+       ORDER BY c."${sortField}" ${sortDirection}
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
       values
     );
@@ -129,16 +135,18 @@ export const getCustomer = async (req, res, next) => {
         u.name as created_by_name,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id) as ticket_count,
         (SELECT COUNT(*) FROM tickets WHERE customer_id = c.id AND status != 'بسته شده') as open_ticket_count,
-        CASE
-          WHEN c.contract_end_date IS NULL THEN 'unknown'
-          WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
-          WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
-          ELSE 'active'
-        END as contract_status,
-        CASE
-          WHEN c.contract_end_date IS NULL THEN NULL
-          ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
-        END as contract_days_remaining
+          CASE
+            WHEN c.contract_unlimited THEN 'active'
+            WHEN c.contract_end_date IS NULL THEN 'unknown'
+            WHEN c.contract_end_date < CURRENT_DATE THEN 'expired'
+            WHEN c.contract_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+            ELSE 'active'
+          END as contract_status,
+          CASE
+            WHEN c.contract_unlimited THEN NULL
+            WHEN c.contract_end_date IS NULL THEN NULL
+            ELSE DATE_PART('day', c.contract_end_date::timestamp - CURRENT_TIMESTAMP)::int
+          END as contract_days_remaining
        FROM customers c
        LEFT JOIN users u ON c.created_by = u.id
        WHERE c.id = $1`,
@@ -177,6 +185,7 @@ export const createCustomer = async (req, res, next) => {
       notes,
       contract_start_date,
       contract_end_date,
+      contract_unlimited,
       contract_tier,
     } = req.body;
 
@@ -225,7 +234,9 @@ export const createCustomer = async (req, res, next) => {
     }
 
     const contractStartISO = toISODate(contract_start_date, "شروع");
-    const contractEndISO = toISODate(contract_end_date, "پایان");
+    let contractEndISO = toISODate(contract_end_date, "پایان");
+    const isUnlimited = !!contract_unlimited;
+    if (isUnlimited) contractEndISO = null;
 
     if (contractStartISO && contractEndISO) {
       const start = new Date(contractStartISO);
@@ -242,8 +253,8 @@ export const createCustomer = async (req, res, next) => {
     const tier = normalizeTier(contract_tier);
 
     const result = await query(
-      `INSERT INTO customers (name, email, phone, company, address, city, country, notes, contract_start_date, contract_end_date, contract_tier, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `INSERT INTO customers (name, email, phone, company, address, city, country, notes, contract_start_date, contract_end_date, contract_unlimited, contract_tier, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         trimmedName,
@@ -256,6 +267,7 @@ export const createCustomer = async (req, res, next) => {
         notes || null,
         contractStartISO,
         contractEndISO,
+        isUnlimited,
         tier,
         req.user.id,
       ]
@@ -263,9 +275,16 @@ export const createCustomer = async (req, res, next) => {
 
     const customer = result.rows[0];
 
-    // Generate username from customer name (remove spaces and convert to lowercase)
-    const username = trimmedName.replace(/\s+/g, "").toLowerCase();
-    const password = username; // Password is same as username
+    // Use phone number as both username and password
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "شماره تماس برای ایجاد حساب کاربری الزامی است",
+      });
+    }
+
+    const username = normalizedPhone;
+    const password = normalizedPhone; // Password is same as phone number
 
     // Check if username already exists
     const existingUser = await query(
@@ -296,6 +315,12 @@ export const createCustomer = async (req, res, next) => {
       );
 
       userCredentials = { username, password };
+    } else {
+      // If user exists, link the customer to existing user
+      await query(`UPDATE users SET customer_id = $1 WHERE username = $2`, [
+        customer.id,
+        username,
+      ]);
     }
 
     res.status(201).json({
@@ -422,6 +447,16 @@ export const updateCustomer = async (req, res, next) => {
       nextContractEnd = endValue;
     }
 
+    if (contract_unlimited !== undefined) {
+      const val = !!contract_unlimited;
+      fieldsToUpdate.push(`contract_unlimited = $${paramCount}`);
+      values.push(val);
+      paramCount++;
+      if (val) {
+        nextContractEnd = null;
+      }
+    }
+
     if (contract_tier !== undefined) {
       fieldsToUpdate.push(`contract_tier = $${paramCount}`);
       values.push(contract_tier ? normalizeTier(contract_tier) : null);
@@ -460,6 +495,63 @@ export const updateCustomer = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "مشتری با موفقیت به‌روزرسانی شد",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update customer user role (admin only)
+// @route   PUT /api/customers/:id/user-role
+// @access  Private (Admin)
+export const updateCustomerUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["user", "admin", "support"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "نقش نامعتبر است",
+      });
+    }
+
+    // Get user associated with this customer
+    const userResult = await query(
+      "SELECT id FROM users WHERE customer_id = $1",
+      [id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "کاربر مرتبط با این مشتری یافت نشد",
+      });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    // Prevent admin from changing their own role
+    if (userId === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "نمی‌توانید نقش خود را تغییر دهید",
+      });
+    }
+
+    // Update user role
+    const result = await query(
+      `UPDATE users
+       SET role = $1
+       WHERE id = $2
+       RETURNING id, name, username, email, role, phone, is_active`,
+      [role, userId]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "نقش کاربر با موفقیت تغییر کرد",
       data: result.rows[0],
     });
   } catch (error) {

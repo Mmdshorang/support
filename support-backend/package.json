@@ -9,6 +9,7 @@
     "dev": "nodemon src/server.js",
     "db:create": "node src/database/createdb.js",
     "db:migrate": "node src/database/migrate.js",
+    "db:migrate:run": "node src/database/runMigration.js",
     "db:seed": "node src/database/seed.js",
     "db:setup": "npm run db:create && npm run db:migrate"
   },

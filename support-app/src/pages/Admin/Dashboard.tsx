@@ -69,9 +69,10 @@ export default function AdminDashboard() {
         const response = await ticketsApi.getTickets({
           page,
           limit: PAGE_SIZE,
-          sortBy: "updated_at",
+          sortBy: "id",
           sortOrder: "desc",
         });
+
 
         setTickets(response.data);
         if (response.pagination) {
@@ -216,13 +217,13 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
           خانه
         </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-300">
           مرور سریع وضعیت تیکت‌ها و عملکرد تیم‌ها
         </p>
       </div>
@@ -256,9 +257,9 @@ export default function AdminDashboard() {
       </section>
 
       {/* Main Table */}
-      <section className="space-y-4 rounded-3xl border border-slate-200/70 bg-white/80 p-6 dark:border-slate-800/60 dark:bg-slate-900/70">
+      <section className="space-y-4 rounded-2xl sm:rounded-3xl border border-slate-200/70 bg-white/80 p-4 sm:p-6 dark:border-slate-800/60 dark:bg-slate-900/70">
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-          <h2 className="text-lg font-semibold">جدول تیکت ها</h2>
+          <h2 className="text-base sm:text-lg font-semibold">جدول تیکت ها</h2>
 
           <div className="relative w-full sm:w-auto">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -284,109 +285,136 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            <table className="min-w-full table-fixed border-separate border-spacing-y-3 text-sm">
-              <thead>
-                <tr className="text-right text-xs font-semibold text-slate-500">
-                  <th className="rounded-r-xl bg-slate-100 px-3 py-2">تیکت</th>
-                  <th className="bg-slate-100 px-3 py-2">مشتری</th>
-                  <th className="bg-slate-100 px-3 py-2">شماره تماس</th>
-                  <th className="bg-slate-100 px-3 py-2">دسته بندی</th>
-                  <th className="bg-slate-100 px-3 py-2">مشکل</th>
-                  <th className="bg-slate-100 px-3 py-2">نوع پشتیبانی</th>
-                  <th className="bg-slate-100 px-3 py-2">راه‌حل</th>
-                  <th className="bg-slate-100 px-3 py-2">وضعیت</th>
+            <div className="mt-4 sm:mt-5 overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-full border-separate border-spacing-y-3 text-sm">
+                <thead>
+                  <tr className="text-right text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    <th className="rounded-r-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      تیکت
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 min-w-40">
+                      مشتری
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 min-w-30">
+                      شماره تماس
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      دسته بندی
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5 min-w-30">
+                      مشکل
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      نوع پشتیبانی
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      راه‌حل
+                    </th>
+                    <th className="bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      وضعیت
+                    </th>
+                    <th className="rounded-l-xl bg-indigo-50 dark:bg-indigo-900/30 px-2 sm:px-3 py-2.5">
+                      تاریخ ثبت
+                    </th>
+                  </tr>
+                </thead>
 
-                  <th className="rounded-l-xl bg-slate-100 px-3 py-2">
-                    تاریخ ثبت
-                  </th>
-                </tr>
-              </thead>
+                <tbody>
+                  {filteredTickets.map((ticket) => {
+                    const supportType: SupportType =
+                      ticket.support_type === "inPerson"
+                        ? "inPerson"
+                        : "remote";
+                    const hasUnread =
+                      !!ticket.admin_unread_count &&
+                      ticket.admin_unread_count > 0;
+                    const isActive = selectedTicket?.id === ticket.id;
 
-              <tbody>
-                {filteredTickets.map((ticket) => {
-                  const supportType: SupportType =
-                    ticket.support_type === "inPerson" ? "inPerson" : "remote";
-                  const hasUnread =
-                    !!ticket.admin_unread_count &&
-                    ticket.admin_unread_count > 0;
-                  const isActive = selectedTicket?.id === ticket.id;
+                    const customerName =
+                      ticket.customer ||
+                      ticket.customer_name ||
+                      ticket.owner ||
+                      ticket.user_name ||
+                      "نامشخص";
+                    const customerPhone =
+                      ticket.customer_phone ||
+                      ticket.owner_phone ||
+                      ticket.user_phone ||
+                      "نامشخص";
 
-                  const customerName =
-                    ticket.customer ||
-                    ticket.customer_name ||
-                    ticket.owner ||
-                    ticket.user_name ||
-                    "نامشخص";
-                  const customerPhone =
-                    ticket.customer_phone ||
-                    ticket.owner_phone ||
-                    ticket.user_phone ||
-                    "نامشخص";
+                    return (
+                      <tr
+                        key={ticket.id}
+                        onClick={() => handleSelectTicket(ticket)}
+                        className={`rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 ${
+                          isActive
+                            ? "ring-2 ring-indigo-200 dark:ring-indigo-500"
+                            : ""
+                        }`}
+                      >
+                        <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-r-2xl">
+                          <div className="flex items-center gap-2 font-semibold text-xs sm:text-sm">
+                            <span>#{ticket.id}</span>
+                            {hasUnread && (
+                              <span className="h-2 w-2 rounded-full bg-rose-500" />
+                            )}
+                          </div>
+                        </td>
 
-                  return (
-                    <tr
-                      key={ticket.id}
-                      onClick={() => handleSelectTicket(ticket)}
-                      className={`rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 ${
-                        isActive
-                          ? "ring-2 ring-indigo-200 dark:ring-indigo-500"
-                          : ""
-                      }`}
-                    >
-                      <td className="px-3 py-4 rounded-r-2xl">
-                        <div className="flex items-center gap-2 font-semibold">
-                          <span>#{ticket.id}</span>
-                          {hasUnread && (
-                            <span className="h-2 w-2 rounded-full bg-rose-500" />
+                        <td className="px-2 sm:px-3 py-3 sm:py-4">
+                          <p className="font-medium text-xs sm:text-sm">
+                            {customerName}
+                          </p>
+                        </td>
+                        <td className="px-2 sm:px-3 py-3 sm:py-4">
+                          <p className="font-medium text-xs sm:text-sm">
+                            {customerPhone}
+                          </p>
+                        </td>
+                        <td className="px-1 sm:px-2 py-3 sm:py-4">
+                          <p className="text-xs sm:text-sm">
+                            {ticket.category_name}
+                          </p>
+                        </td>
+                        <td className="px-2 sm:px-3 py-3 sm:py-4">
+                          <p className="text-xs sm:text-sm line-clamp-2">
+                            {ticket.description}
+                          </p>
+                        </td>
+
+                        <td className="px-1 sm:px-2 py-3 sm:py-4 ">
+                          <span
+                            className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${SUPPORT_BADGES[supportType]}`}
+                          >
+                            {SUPPORT_LABELS[supportType]}
+                          </span>
+                        </td>
+                        <td className="px-1 sm:px-2 py-3 sm:py-4 ">
+                          <p className="text-xs sm:text-sm line-clamp-2">
+                            {ticket.solution || "بدون جواب"}
+                          </p>
+                        </td>
+                        <td className="px-2 sm:px-3 py-3 sm:py-4 min-w-[100px]">
+                          <span
+                            className={`px-2 sm:px-3 py-1 text-xs rounded-xl font-semibold ${
+                              STATUS_STYLES[ticket.status]
+                            }`}
+                          >
+                            {ticket.status}
+                          </span>
+                        </td>
+
+                        <td className="px-2 sm:px-3 py-3 sm:py-4 rounded-l-2xl text-xs">
+                          {new Date(ticket.created_at).toLocaleDateString(
+                            "fa-IR"
                           )}
-                        </div>
-                      </td>
-
-                      <td className="px-3 py-4">
-                        <p className="font-medium">{customerName}</p>
-                      </td>
-                      <td className="px-3 py-4">
-                        <p className="font-medium">{customerPhone}</p>
-                      </td>
-                      <td className="px-1 py-4">
-                        <p className="text-sm">{ticket.category_name}</p>
-                      </td>
-                      <td className="px-1 py-4">
-                        <p className="text-sm">{ticket.description}</p>
-                      </td>
-
-                      <td className="px-1 py-4">
-                        <span
-                          className={`px-3 py-1 text-xs rounded-xl font-semibold ${SUPPORT_BADGES[supportType]}`}
-                        >
-                          {SUPPORT_LABELS[supportType]}
-                        </span>
-                      </td>
-                      <td className="px-1 py-4">
-                        <p className="text-sm">
-                          {ticket.solution || "بدون جواب"}
-                        </p>
-                      </td>
-                      <td className="px-3 py-4">
-                        <span
-                          className={`px-3 py-1 text-xs rounded-xl font-semibold ${
-                            STATUS_STYLES[ticket.status]
-                          }`}
-                        >
-                          {ticket.status}
-                        </span>
-                      </td>
-
-                      <td className="px-3 py-4 rounded-l-2xl text-xs">
-                        {new Date(ticket.created_at).toLocaleDateString(
-                          "fa-IR"
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {totalPages > 1 && (
               <Pagination

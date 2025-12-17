@@ -1,0 +1,14 @@
+{
+  "app": "support-front",
+  "port": 80,
+  "build": {
+    "location": "iran",
+    "args": {
+      "VITE_API_URL": "https://support-back.liara.run/api"
+    }
+  },
+  "disks": [],
+  "env": {
+    "VITE_API_URL": "https://support-back.liara.run/api"
+  }
+}

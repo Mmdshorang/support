@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS customers (
     notes TEXT,
     contract_start_date DATE,
     contract_end_date DATE,
+    contract_unlimited BOOLEAN DEFAULT false,
     contract_tier VARCHAR(20) DEFAULT 'standard',
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -161,6 +162,15 @@ CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON tickets(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket_id ON ticket_messages(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+
+-- Add contract_unlimited column if missing (for existing databases)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name='customers' AND column_name='contract_unlimited') THEN
+        ALTER TABLE customers ADD COLUMN contract_unlimited BOOLEAN DEFAULT false;
+    END IF;
+END $$;
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

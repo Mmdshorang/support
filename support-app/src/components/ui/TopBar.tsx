@@ -1,19 +1,19 @@
-import { Menu, UserCircle2 } from "lucide-react";
+import { UserCircle2, Menu } from "lucide-react";
 import { useAtomValue } from "jotai";
 import { userAtom } from "../../stores/auth";
 
 interface TopBarProps {
-  sidebarOpen: boolean;
-  onToggleSidebar: () => void;
   pageTitle: string;
   subtitle?: string;
+  onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
 }
 
 export default function TopBar({
-  sidebarOpen,
-  onToggleSidebar,
   pageTitle,
   subtitle,
+  onToggleSidebar,
+  sidebarOpen,
 }: TopBarProps) {
   const user = useAtomValue(userAtom);
 
@@ -24,7 +24,7 @@ export default function TopBar({
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 lg:hidden"
             aria-label={sidebarOpen ? "بستن منو" : "باز کردن منو"}
           >
             <Menu className="h-5 w-5" />

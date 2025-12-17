@@ -48,7 +48,7 @@ docker ps
 ```
 
 ### 5. دسترسی به برنامه
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhost:7500
 - **Backend API**: http://localhost:2400/api
 - **PostgreSQL**: localhost:5432
 
@@ -172,7 +172,7 @@ server {
 
     # Frontend
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:7500;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

@@ -212,4 +212,15 @@ export const ticketsApi = {
     );
     return response.data;
   },
+ updateStatus: async (
+  id: number,
+  status: TicketStatus
+): Promise<ApiResponse<Ticket>> => {
+  const response = await apiClient.put<ApiResponse<Ticket>>(
+    `/tickets/${id}`,
+    { status }
+  );
+  return response.data;
+},
+
 };
