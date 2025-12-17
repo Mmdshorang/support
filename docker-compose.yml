@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: support_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: 1234
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -53,7 +53,7 @@ services:
     build:
       context: ./support-app
       args:
-        - VITE_API_URL=http://support-backend:2400/api
+        - VITE_API_URL=/api   # مسیر نسبی به جای http://support-backend:2400/api
     container_name: support-app
     restart: always
     ports:
