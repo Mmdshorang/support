@@ -91,7 +91,7 @@ function LoginPage() {
             className="w-20 h-20 mb-3 shadow-md border border-slate-200 rounded-2xl bg-white/90 p-3"
           />
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
-            پشتیبانی حسابان
+           1 پشتیبانی حسابان
           </h1>
           <p className="text-slate-500 dark:text-slate-300 mt-2 text-lg">
             ورود به سامانه

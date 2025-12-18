@@ -1,33 +1,17 @@
-<<<<<<< HEAD
-# ---- Build frontend ----
-FROM node:18-alpine AS builder
-
-# مسیر API نسبی
-ARG VITE_API_URL=/api
-=======
 # مرحله build
 FROM node:20-alpine AS builder
 
-ARG VITE_API_URL=https://support-back.liara.run/api
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
+ARG VITE_API_URL=/api
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci
 
-<<<<<<< HEAD
-# Copy source code
-=======
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
 COPY . .
 
 ENV VITE_API_URL=${VITE_API_URL}
 
-<<<<<<< HEAD
-# Build frontend
-=======
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
 RUN npm run build
 
 # ---- Serve with Nginx ----

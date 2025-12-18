@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Production API URL - این مقدار پیش‌فرض است
-const PRODUCTION_API_URL = "https://support-back.liara.run/api";
-const DEVELOPMENT_API_URL = "http://localhost:5000/api";
+const PRODUCTION_API_URL = "http://192.168.1.30:2400/api";
+const DEVELOPMENT_API_URL = "http://192.168.1.30:2400/api/";
 
 // Check if we're in development mode
 const isDevelopment =

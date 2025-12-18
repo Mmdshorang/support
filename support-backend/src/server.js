@@ -31,19 +31,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS
-<<<<<<< HEAD
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: false
-}));
-=======
 app.use(
   cors({
     origin: "*",
     credentials: false,
   })
 );
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
 
 // Dev logging middleware
 if (process.env.NODE_ENV === "development") {
@@ -60,14 +53,6 @@ pool.query("SELECT NOW()", (err, res) => {
 });
 
 // Health check routes
-<<<<<<< HEAD
-app.get('/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'Server is running' });
-});
-
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'API is healthy' });
-=======
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -82,7 +67,6 @@ app.get("/api/health", (req, res) => {
     message: "API is healthy",
     timestamp: new Date().toISOString(),
   });
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
 });
 
 // Database health check endpoint
@@ -141,15 +125,6 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 2400;
 
-<<<<<<< HEAD
-// **Change here: listen on 0.0.0.0**
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode`);
-  console.log(`📡 API Base: http://0.0.0.0:${PORT}/api`);
-});
-
-process.on('unhandledRejection', (err) => {
-=======
 const server = app.listen(PORT, () => {
   console.log("═══════════════════════════════════════════");
   console.log(`🚀 Server running in ${process.env.NODE_ENV} mode`);
@@ -160,22 +135,15 @@ const server = app.listen(PORT, () => {
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err, promise) => {
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
   console.error(`❌ Unhandled Rejection: ${err.message}`);
   server.close(() => process.exit(1));
 });
 
-<<<<<<< HEAD
-process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM received, closing server gracefully');
-  server.close(() => {
-=======
 // Handle SIGTERM
 process.on("SIGTERM", () => {
   console.log("👋 SIGTERM received, closing server gracefully");
   server.close(() => {
     console.log("✅ Server closed");
->>>>>>> 61cb24291c7d1a68ba5007ef3eba27f5437fcdc2
     pool.end();
     process.exit(0);
   });
