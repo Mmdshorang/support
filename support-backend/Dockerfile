@@ -6,7 +6,13 @@ RUN apk add --no-cache bash postgresql-client curl
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+RUN corepack enable
+
+# کپی فایل‌های dependency
+COPY package.json pnpm-lock.yaml ./
+
+# نصب دقیق وابستگی‌ها
+RUN pnpm install --frozen-lockfile
 
 # Install dependencies
 RUN npm ci
