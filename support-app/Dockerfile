@@ -6,12 +6,12 @@ ARG VITE_API_URL=/api
 WORKDIR /app
 
 RUN corepack enable
-
 # مهم: فعال کردن pnpm
 RUN corepack prepare pnpm@latest --activate
 
 # اول فقط فایل‌های dependency
 COPY package.json pnpm-lock.yaml ./
+RUN pnpm config set enable-pre-post-scripts true
 
 # حالا pnpm قابل استفاده است
 RUN pnpm install --frozen-lockfile
