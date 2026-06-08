@@ -1,32 +1,40 @@
-# مرحله build
+# =========================
+# Stage 1: Builder
+# =========================
 FROM node:22-alpine AS builder
-
-ARG VITE_API_URL=/api
 
 WORKDIR /app
 
+# فعال‌سازی pnpm از طریق corepack
 RUN corepack enable
-# مهم: فعال کردن pnpm
 RUN corepack prepare pnpm@latest --activate
 
-# اول فقط فایل‌های dependency
+# کپی فقط dependency ها برای cache بهتر
 COPY package.json pnpm-lock.yaml ./
 
-ENV PNPM_IGNORE_SCRIPTS=false
+# جلوگیری از خطای approve-builds در pnpm جدید
+ENV PNPM_ENABLE_BUILD_DEPENDENCIES=true
 
-# حالا pnpm قابل استفاده است
-RUN pnpm install --frozen-lockfile
+# نصب کامل dependencies (حل مشکل esbuild و tailwind oxide)
+RUN pnpm install --frozen-lockfile --no-verify-store-integrity
 
+# کپی کل پروژه
 COPY . .
 
+# env برای build فرانت
+ARG VITE_API_URL=/api
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN npm run build
+# بیلد با pnpm (نه npm!)
+RUN pnpm build
 
-# ---- Serve with Nginx ----
+
+# =========================
+# Stage 2: Production (Nginx)
+# =========================
 FROM nginx:alpine
 
-# ساخت دایرکتوری‌های temp قبل از اجرای nginx
+# ساخت temp dir برای nginx (حل مشکل permission در بعضی سیستم‌ها)
 RUN mkdir -p /tmp/nginx/client_temp \
     /tmp/nginx/proxy_temp \
     /tmp/nginx/fastcgi_temp \
@@ -34,10 +42,10 @@ RUN mkdir -p /tmp/nginx/client_temp \
     /tmp/nginx/scgi_temp && \
     chmod -R 777 /tmp/nginx
 
-# Copy nginx config
+# nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built files
+# خروجی build
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
