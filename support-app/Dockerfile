@@ -11,7 +11,7 @@ RUN corepack prepare pnpm@latest --activate
 
 # کپی فقط dependency ها برای cache بهتر
 COPY package.json pnpm-lock.yaml ./
-
+ENV PNPM_IGNORE_BUILD_DEPENDENCIES=true
 # جلوگیری از خطای approve-builds در pnpm جدید
 ENV PNPM_ENABLE_BUILD_DEPENDENCIES=true
 
